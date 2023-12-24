@@ -20,10 +20,17 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	//Player Movement/Looking
+	virtual void IAMove_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IALook_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
 };
 

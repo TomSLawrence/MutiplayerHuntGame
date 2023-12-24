@@ -3,6 +3,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Character.h"
 #include "AsymmetricalHuntGame/Survivors/Survivor_Craig/Survivor_Craig.h"
+#include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Hunter_Ghost.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -23,6 +24,7 @@ void AThePlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(_Crouch, ETriggerEvent::Triggered, this, &AThePlayerController::CrouchInput);
 		EnhancedInputComponent->BindAction(_Crouch, ETriggerEvent::Completed, this, &AThePlayerController::StandInput);
 		EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Triggered, this, &AThePlayerController::AimInput);
+		EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Completed, this, &AThePlayerController::StopAiming);
 		EnhancedInputComponent->BindAction(_Shoot, ETriggerEvent::Triggered, this, &AThePlayerController::ShootInput);
 
 	}
@@ -31,9 +33,11 @@ void AThePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PossessSurvivorCharacter();
+	//PossessSurvivorCharacter();
+	PossessHunterCharacter();
 }
 
+/*
 void AThePlayerController::PossessSurvivorCharacter()
 {
 	this->UnPossess();
@@ -48,13 +52,13 @@ void AThePlayerController::PossessSurvivorCharacter()
 
 	if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
-		if(_InputMappingContext)
+		if(_SurvivorMappingContext)
 		{
 			Subsystem->ClearAllMappings();
-			Subsystem->AddMappingContext(_InputMappingContext,0);
+			Subsystem->AddMappingContext(_SurvivorMappingContext,0);
 		}
 	}
-	_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(ThePlayerCharacter, SurvivorSpawnLocation, SurvivorSpawnRotation, SpawnParams);
+	_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheSurvivorCharacter, SurvivorSpawnLocation, SurvivorSpawnRotation, SpawnParams);
 	
 	if(UGameplayStatics::GetPlayerController(this, 0))
 	{
@@ -63,7 +67,9 @@ void AThePlayerController::PossessSurvivorCharacter()
 	}
 	
 }
-/*
+
+*/
+
 void AThePlayerController::PossessHunterCharacter()
 {
 	this->UnPossess();
@@ -73,18 +79,18 @@ void AThePlayerController::PossessHunterCharacter()
 	SpawnParams.Owner = GetOwner();
 	SpawnParams.Instigator = GetInstigator();
 
-	FVector SurvivorSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
-	FRotator SurvivorSpawnRotation(0.0f, 0.0f, 0.0f); 
+	FVector HunterSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
+	FRotator HunterSpawnRotation(0.0f, 0.0f, 0.0f); 
 
 	if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
-		if(_InputMappingContext)
+		if(_SurvivorMappingContext)
 		{
 			Subsystem->ClearAllMappings();
-			Subsystem->AddMappingContext(_InputMappingContext,0);
+			Subsystem->AddMappingContext(_HunterMappingContext,0);
 		}
 	}
-	_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(ThePlayerCharacter, SurvivorSpawnLocation, SurvivorSpawnRotation, SpawnParams);
+	_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheHunterCharacter, HunterSpawnLocation, HunterSpawnRotation, SpawnParams);
 	
 	if(UGameplayStatics::GetPlayerController(this, 0))
 	{
@@ -93,12 +99,11 @@ void AThePlayerController::PossessHunterCharacter()
 	}
 }
 
-*/
-
 
 void AThePlayerController::MoveInput(const FInputActionInstance& Instance)
 {
 	Execute_IAMove(_PlayerCharacter, Instance);
+	UE_LOG(LogSurvivorController, Display, TEXT("Moving Player"));
 }
 
 void AThePlayerController::LookInput(const FInputActionInstance& Instance)
@@ -144,5 +149,10 @@ void AThePlayerController::ShootInput(const FInputActionInstance& Instance)
 void AThePlayerController::AimInput(const FInputActionInstance& Instance)
 {
 	Execute_IAAim(_PlayerCharacter, Instance);
+}
+
+void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
+{
+	Execute_IAStopAiming(_PlayerCharacter, Instance);
 }
 

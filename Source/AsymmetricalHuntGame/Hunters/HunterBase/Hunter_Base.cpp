@@ -15,6 +15,9 @@ AHunter_Base::AHunter_Base()
 	_Camera->SetupAttachment(_Collision);
 	_Camera->SetRelativeLocation(FVector(-10.0f, 0.0f, 60.0f));
 	_Camera->bUsePawnControlRotation = true;
+
+	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+	_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
 }
 
 // Called when the game starts or when spawned
@@ -22,7 +25,7 @@ void AHunter_Base::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+	isAiming = false;
 	
 }
 
@@ -51,11 +54,25 @@ void AHunter_Base::IALook_Implementation(const FInputActionInstance& Instance)
 
 		if(AxisValue.Y != 0.f)
 		{
-			AddControllerPitchInput(AxisValue.Y);
+			if(isAiming)
+			{
+				AddControllerPitchInput(AxisValue.Y / _AimingSensitivity);
+			}
+			else
+			{
+				AddControllerPitchInput(AxisValue.Y);
+			}
 		}
 		if(AxisValue.X != 0.f)
 		{
-			AddControllerYawInput(AxisValue.X);
+			if(isAiming)
+			{
+				AddControllerYawInput(AxisValue.X / _AimingSensitivity);
+			}
+			else
+			{
+				AddControllerYawInput(AxisValue.X);
+			}
 		}
 	}
 }
@@ -78,20 +95,17 @@ void AHunter_Base::IAStopSprinting_Implementation(const FInputActionInstance& In
 
 void AHunter_Base::IACrouch_Implementation(const FInputActionInstance& Instance)
 {
-	_Collision->SetCapsuleSize(_Collision->GetScaledCapsuleRadius(), 10.0f, true);
-	_CharacterMovement->MaxWalkSpeed = _CrouchSpeed;
+	Crouch();
 }
 
 void AHunter_Base::IAStand_Implementation(const FInputActionInstance& Instance)
 {
-	_Collision->SetCapsuleSize(_Collision->GetScaledCapsuleRadius(), 68.0f, true);
-	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+	UnCrouch();
 }
 
 void AHunter_Base::IAJump_Implementation(const FInputActionInstance& Instance)
 {
 	Jump();
-	UE_LOG(LogHunterBase, Display, TEXT("Jumping"));
 }
 
 void AHunter_Base::IAShoot_Implementation(const FInputActionInstance& Instance)
@@ -101,7 +115,15 @@ void AHunter_Base::IAShoot_Implementation(const FInputActionInstance& Instance)
 
 void AHunter_Base::IAAim_Implementation(const FInputActionInstance& Instance)
 {
-	IIAInterface::IAAim_Implementation(Instance);
+	isAiming = true;
+	_Camera->SetFieldOfView(30.0f);
+	UE_LOG(LogHunterBase, Display, TEXT("Aiming"));
+}
+
+void AHunter_Base::IAStopAiming_Implementation(const FInputActionInstance& Instance)
+{
+	isAiming = false;
+	_Camera->SetFieldOfView(90.0f);
 }
 
 
