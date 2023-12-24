@@ -31,6 +31,7 @@ public:
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAStopAiming_Implementation(const FInputActionInstance& Instance) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -53,6 +54,12 @@ protected:
 	float _WalkSpeed;
 	UPROPERTY(EditAnywhere)
 	float _CrouchSpeed;
+
+	//Aiming Sensitivity
+	UPROPERTY(VisibleAnywhere)
+	bool isAiming;
+	UPROPERTY(EditAnywhere)
+	float _AimingSensitivity;
 
 	//Player Velocity
 	UPROPERTY()

@@ -8,11 +8,15 @@
 #include "AsymmetricalHuntGame/Controller/Interfaces/IAInterface.h"
 #include "ThePlayerController.generated.h"
 
+//Forward Declarations
 class UInputComponent;
 class ACharacter;
 
 //Survivor Classes
 class ASurvivor_Craig;
+
+//Hunter Classes
+class AHunter_Ghost;
 
 UCLASS(Abstract)
 class ASYMMETRICALHUNTGAME_API AThePlayerController : public APlayerController, public IIAInterface
@@ -26,8 +30,15 @@ protected:
 	void PossessSurvivorCharacter();
 	void PossessHunterCharacter();
 
+	//Survivor Subclasses
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<ASurvivor_Craig> ThePlayerCharacter;
+	TSubclassOf<ASurvivor_Craig> TheSurvivorCharacter;
+
+	//Hunter Subclasses
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<AHunter_Ghost> TheHunterCharacter;
+
+	//Character Subclass
 	UPROPERTY()
 	TObjectPtr<ACharacter> _PlayerCharacter;
 
@@ -35,7 +46,9 @@ public:
 
 	virtual void SetupInputComponent() override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
-	UInputMappingContext* _InputMappingContext;
+	UInputMappingContext* _SurvivorMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
+	UInputMappingContext* _HunterMappingContext;
 	
 	//Player Mechanics
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
@@ -66,5 +79,6 @@ public:
 	void JumpInput(const FInputActionInstance& Instance);
 	void ShootInput(const FInputActionInstance& Instance);
 	void AimInput(const FInputActionInstance& Instance);
+	void StopAiming(const FInputActionInstance& Instance);
 };
 

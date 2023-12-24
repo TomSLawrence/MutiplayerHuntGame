@@ -99,14 +99,4 @@ void ASurvivor_Base::IAJump_Implementation(const FInputActionInstance& Instance)
 	UE_LOG(LogSurvivorBase, Display, TEXT("Jumping"));
 }
 
-void ASurvivor_Base::IAAim_Implementation(const FInputActionInstance& Instance)
-{
-	IIAInterface::IAAim_Implementation(Instance);
-}
-
-void ASurvivor_Base::IAShoot_Implementation(const FInputActionInstance& Instance)
-{
-	IIAInterface::IAShoot_Implementation(Instance);
-}
-
 

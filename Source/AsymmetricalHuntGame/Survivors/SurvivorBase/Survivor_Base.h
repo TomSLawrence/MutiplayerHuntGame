@@ -27,8 +27,6 @@ public:
 	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
-	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
-	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
 	
 protected:
 	// Called when the game starts or when spawned
