@@ -6,9 +6,9 @@
 #include "GameFramework/GameMode.h"
 #include "TheGameMode.generated.h"
 
-/**
- * 
- */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSpawnSurvivorCharacter);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSpawnHunterCharacter);
+
 UCLASS(Abstract)
 class ASYMMETRICALHUNTGAME_API ATheGameMode : public AGameMode
 {
@@ -16,6 +16,14 @@ class ASYMMETRICALHUNTGAME_API ATheGameMode : public AGameMode
 
 public:
 	virtual void BeginPlay() override;
+
+	FSpawnHunterCharacter OnHunterSpawn;
+	FSpawnSurvivorCharacter OnSurvivorSpawn;
+	
+protected:
+	UFUNCTION(BlueprintCallable)
+	void SpawnCharacters();
+
 };
 
 

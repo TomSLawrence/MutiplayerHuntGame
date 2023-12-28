@@ -4,10 +4,11 @@
 #include "GameFramework/Character.h"
 #include "AsymmetricalHuntGame/Survivors/Survivor_Craig/Survivor_Craig.h"
 #include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Hunter_Ghost.h"
+#include "AsymmetricalHuntGame/GameMode/TheGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
-DEFINE_LOG_CATEGORY_STATIC(LogSurvivorController, Display, All);
+DEFINE_LOG_CATEGORY_STATIC(LogThePlayerController, Display, All);
 
 void AThePlayerController::SetupInputComponent()
 {
@@ -33,11 +34,21 @@ void AThePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//PossessSurvivorCharacter();
-	PossessHunterCharacter();
+	
+	//Spawn Player Characters (Make if statement here to decide which character is being spawned).
+	ATheGameMode* _TheGameMode = Cast<ATheGameMode>(GetWorld()->GetAuthGameMode());
+	_TheGameMode->OnHunterSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessHunterCharacter);
+
+	//_TheGameMode->OnSurvivorSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessSurvivorCharacter);
 }
 
 /*
+void AThePlayerController::Server_PossessSurvivorCharacter()
+{
+	PossessSurvivorCharacter();
+}
+
+
 void AThePlayerController::PossessSurvivorCharacter()
 {
 	this->UnPossess();
@@ -72,6 +83,7 @@ void AThePlayerController::PossessSurvivorCharacter()
 
 void AThePlayerController::PossessHunterCharacter()
 {
+	UE_LOG(LogThePlayerController, Display, TEXT("ThePlayerController Working"))
 	this->UnPossess();
 	
 	FActorSpawnParameters SpawnParams;
@@ -95,7 +107,6 @@ void AThePlayerController::PossessHunterCharacter()
 	if(UGameplayStatics::GetPlayerController(this, 0))
 	{
 		this->Possess(_PlayerCharacter);
-		UE_LOG(LogSurvivorController, Display, TEXT("Possessed Player"));
 	}
 }
 
@@ -103,7 +114,6 @@ void AThePlayerController::PossessHunterCharacter()
 void AThePlayerController::MoveInput(const FInputActionInstance& Instance)
 {
 	Execute_IAMove(_PlayerCharacter, Instance);
-	UE_LOG(LogSurvivorController, Display, TEXT("Moving Player"));
 }
 
 void AThePlayerController::LookInput(const FInputActionInstance& Instance)
