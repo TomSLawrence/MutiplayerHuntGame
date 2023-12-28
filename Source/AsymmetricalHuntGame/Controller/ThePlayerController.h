@@ -11,6 +11,7 @@
 //Forward Declarations
 class UInputComponent;
 class ACharacter;
+class ATheGameMode;
 
 //Survivor Classes
 class ASurvivor_Craig;
@@ -27,6 +28,7 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	//Functions
 	void PossessSurvivorCharacter();
 	void PossessHunterCharacter();
 
@@ -80,5 +82,7 @@ public:
 	void ShootInput(const FInputActionInstance& Instance);
 	void AimInput(const FInputActionInstance& Instance);
 	void StopAiming(const FInputActionInstance& Instance);
+
+	//Server Functions
 };
 

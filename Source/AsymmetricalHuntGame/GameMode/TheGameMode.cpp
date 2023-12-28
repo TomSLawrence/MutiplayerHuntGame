@@ -2,9 +2,16 @@
 
 #include "TheGameMode.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogTheGameMode, Display, All);
+
 void ATheGameMode::BeginPlay()
 {
-	Super::BeginPlay();
+	SpawnCharacters();
+}
 
-	
+void ATheGameMode::SpawnCharacters()
+{
+	OnSurvivorSpawn.Broadcast();
+	OnHunterSpawn.Broadcast();
+	UE_LOG(LogTheGameMode, Display, TEXT("TheGameMode Working"));
 }
