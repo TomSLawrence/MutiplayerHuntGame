@@ -33,10 +33,9 @@ void AThePlayerController::SetupInputComponent()
 void AThePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
 	
 	//Spawn Player Characters (Make if statement here to decide which character is being spawned).
-	ATheGameMode* _TheGameMode = Cast<ATheGameMode>(GetWorld()->GetAuthGameMode());
+	_TheGameMode = Cast<ATheGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	_TheGameMode->OnHunterSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessHunterCharacter);
 
 	//_TheGameMode->OnSurvivorSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessSurvivorCharacter);
@@ -83,7 +82,7 @@ void AThePlayerController::PossessSurvivorCharacter()
 
 void AThePlayerController::PossessHunterCharacter()
 {
-	UE_LOG(LogThePlayerController, Display, TEXT("ThePlayerController Working"))
+	UE_LOG(LogThePlayerController, Display, TEXT("ThePlayerController Working"));
 	this->UnPossess();
 	
 	FActorSpawnParameters SpawnParams;

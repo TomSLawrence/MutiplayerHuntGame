@@ -28,10 +28,6 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	//Functions
-	void PossessSurvivorCharacter();
-	void PossessHunterCharacter();
-
 	//Survivor Subclasses
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ASurvivor_Craig> TheSurvivorCharacter;
@@ -44,8 +40,12 @@ protected:
 	UPROPERTY()
 	TObjectPtr<ACharacter> _PlayerCharacter;
 
-public:
+	//GameMode Reference
+	UPROPERTY()
+	TObjectPtr<ATheGameMode> _TheGameMode;
 
+public:
+	
 	virtual void SetupInputComponent() override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
 	UInputMappingContext* _SurvivorMappingContext;
@@ -69,7 +69,7 @@ public:
 	UInputAction* _Aim;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
 	UInputAction* _Shoot;
-
+	
 	//Adding controller action methods
 	void MoveInput(const FInputActionInstance& Instance);
 	void LookInput(const FInputActionInstance& Instance);
@@ -82,6 +82,11 @@ public:
 	void ShootInput(const FInputActionInstance& Instance);
 	void AimInput(const FInputActionInstance& Instance);
 	void StopAiming(const FInputActionInstance& Instance);
+
+	//Functions
+	void PossessSurvivorCharacter();
+	void PossessHunterCharacter();
+
 
 	//Server Functions
 };
