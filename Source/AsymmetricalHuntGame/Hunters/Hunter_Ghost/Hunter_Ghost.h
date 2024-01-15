@@ -6,6 +6,10 @@
 #include "AsymmetricalHuntGame/Hunters/HunterBase/Hunter_Base.h"
 #include "Hunter_Ghost.generated.h"
 
+class AProjectile_Ghost;
+class UArrowComponent;
+class UCameraComponent;
+
 UCLASS()
 class ASYMMETRICALHUNTGAME_API AHunter_Ghost : public AHunter_Base
 {
@@ -18,6 +22,15 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<AProjectile_Ghost> _Projectile;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UArrowComponent> _ProjectileSpawn;
+
+	UPROPERTY()
+	TObjectPtr<UCameraComponent> _playerCamera;
 
 public:
 

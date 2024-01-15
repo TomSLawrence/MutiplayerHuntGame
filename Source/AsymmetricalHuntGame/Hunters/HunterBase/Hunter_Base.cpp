@@ -15,7 +15,7 @@ AHunter_Base::AHunter_Base()
 	_Camera->SetupAttachment(_Collision);
 	_Camera->SetRelativeLocation(FVector(-10.0f, 0.0f, 60.0f));
 	_Camera->bUsePawnControlRotation = true;
-
+	
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
 }
@@ -26,7 +26,6 @@ void AHunter_Base::BeginPlay()
 	Super::BeginPlay();
 
 	isAiming = false;
-	
 }
 
 void AHunter_Base::IAMove_Implementation(const FInputActionInstance& Instance)

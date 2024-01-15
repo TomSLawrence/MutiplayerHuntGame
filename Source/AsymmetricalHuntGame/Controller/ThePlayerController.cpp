@@ -39,8 +39,9 @@ void AThePlayerController::BeginPlay()
 
 	if(_TheGameMode != nullptr)
 	{
+		PossessHunterCharacter();
 		//_TheGameMode->OnHunterSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessHunterCharacter);
-		_TheGameMode->OnSurvivorSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessSurvivorCharacter);
+		//_TheGameMode->OnSurvivorSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessSurvivorCharacter);
 		UE_LOG(LogThePlayerController, Display, TEXT("ThePlayerController Working"));
 	}
 }

@@ -1,10 +1,17 @@
 ﻿#include "Hunter_Ghost.h"
 
+#include "Components/ArrowComponent.h"
+#include "Camera/CameraComponent.h"
+#include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Projectile_Ghost.h"
+#include "Kismet/GameplayStatics.h"
+
 
 // Sets default values
 AHunter_Ghost::AHunter_Ghost()
 {
-	
+	_playerCamera = Get_Camera();
+	_ProjectileSpawn = CreateDefaultSubobject<UArrowComponent>(TEXT("Projectile Spawn"));
+	_ProjectileSpawn->SetupAttachment(_playerCamera);
 }
 
 // Called when the game starts or when spawned
@@ -56,7 +63,11 @@ void AHunter_Ghost::IAJump_Implementation(const FInputActionInstance& Instance)
 
 void AHunter_Ghost::IAShoot_Implementation(const FInputActionInstance& Instance)
 {
-	Super::IAShoot_Implementation(Instance);
+	FActorSpawnParameters _ProjectileSpawnParams;
+	_ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	_ProjectileSpawnParams.Owner = GetOwner();
+	_ProjectileSpawnParams.Instigator = GetInstigator();
+	GetWorld()->SpawnActor(_Projectile, &_ProjectileSpawn->GetComponentTransform(), _ProjectileSpawnParams);
 }
 
 void AHunter_Ghost::IAAim_Implementation(const FInputActionInstance& Instance)

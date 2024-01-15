@@ -33,19 +33,21 @@ public:
 	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAStopAiming_Implementation(const FInputActionInstance& Instance) override;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 	//Player Components
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> _Mesh;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UStaticMeshComponent> _WeaponMesh;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCapsuleComponent> _Collision;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> _Camera;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCharacterMovementComponent> _CharacterMovement;
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 	//Movement Variables
 	UPROPERTY(EditAnywhere)
