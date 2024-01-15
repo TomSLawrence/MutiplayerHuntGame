@@ -17,11 +17,13 @@ class ASYMMETRICALHUNTGAME_API ATheGameMode : public AGameMode
 public:
 	virtual void BeginPlay() override;
 
+	UPROPERTY()
 	FSpawnHunterCharacter OnHunterSpawn;
+	UPROPERTY()
 	FSpawnSurvivorCharacter OnSurvivorSpawn;
 	
 protected:
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	void SpawnCharacters();
 
 };

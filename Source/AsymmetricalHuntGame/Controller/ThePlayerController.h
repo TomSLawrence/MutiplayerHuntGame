@@ -84,7 +84,9 @@ public:
 	void StopAiming(const FInputActionInstance& Instance);
 
 	//Functions
+	UFUNCTION()
 	void PossessSurvivorCharacter();
+	UFUNCTION()
 	void PossessHunterCharacter();
 
 
