@@ -23,7 +23,7 @@ public:
 	FSpawnSurvivorCharacter OnSurvivorSpawn;
 	
 protected:
-	UFUNCTION()
+	UFUNCTION(NetMulticast, Reliable)
 	void SpawnCharacters();
 
 };

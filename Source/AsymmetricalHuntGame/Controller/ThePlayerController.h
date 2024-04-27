@@ -84,9 +84,9 @@ public:
 	void StopAiming(const FInputActionInstance& Instance);
 
 	//Functions
-	UFUNCTION()
+	UFUNCTION(NetMulticast, Reliable)
 	void PossessSurvivorCharacter();
-	UFUNCTION()
+	UFUNCTION(NetMulticast, Reliable)
 	void PossessHunterCharacter();
 
 

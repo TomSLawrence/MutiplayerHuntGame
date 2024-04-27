@@ -39,14 +39,13 @@ void AThePlayerController::BeginPlay()
 
 	if(_TheGameMode != nullptr)
 	{
-		PossessHunterCharacter();
-		//_TheGameMode->OnHunterSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessHunterCharacter);
+		//PossessHunterCharacter();
+		_TheGameMode->OnHunterSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessHunterCharacter);
 		//_TheGameMode->OnSurvivorSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessSurvivorCharacter);
-		UE_LOG(LogThePlayerController, Display, TEXT("ThePlayerController Working"));
 	}
 }
 
-void AThePlayerController::PossessSurvivorCharacter()
+void AThePlayerController::PossessSurvivorCharacter_Implementation()
 {
 	this->UnPossess();
 	
@@ -75,8 +74,9 @@ void AThePlayerController::PossessSurvivorCharacter()
 	
 }
 
-void AThePlayerController::PossessHunterCharacter()
+void AThePlayerController::PossessHunterCharacter_Implementation()
 {
+	UE_LOG(LogThePlayerController, Display, TEXT("ThePlayerController Working"));
 	this->UnPossess();
 	
 	FActorSpawnParameters SpawnParams;
@@ -101,6 +101,7 @@ void AThePlayerController::PossessHunterCharacter()
 	{
 		this->Possess(_PlayerCharacter);
 	}
+
 }
 
 
@@ -158,4 +159,3 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 {
 	Execute_IAStopAiming(_PlayerCharacter, Instance);
 }
-
