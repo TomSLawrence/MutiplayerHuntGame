@@ -42,6 +42,7 @@ void AThePlayerController::BeginPlay()
 		//PossessHunterCharacter();
 		_TheGameMode->OnHunterSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessHunterCharacter);
 		//_TheGameMode->OnSurvivorSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessSurvivorCharacter);
+		UE_LOG(LogThePlayerController, Display, TEXT("ThePlayerController Working"));
 	}
 }
 
@@ -76,7 +77,6 @@ void AThePlayerController::PossessSurvivorCharacter_Implementation()
 
 void AThePlayerController::PossessHunterCharacter_Implementation()
 {
-	UE_LOG(LogThePlayerController, Display, TEXT("ThePlayerController Working"));
 	this->UnPossess();
 	
 	FActorSpawnParameters SpawnParams;

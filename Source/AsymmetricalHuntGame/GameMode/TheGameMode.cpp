@@ -11,10 +11,6 @@ void ATheGameMode::BeginPlay()
 
 void ATheGameMode::SpawnCharacters_Implementation()
 {
-	if()
-	{
-		
-	}
 	OnSurvivorSpawn.Broadcast();
 	OnHunterSpawn.Broadcast();
 	UE_LOG(LogTheGameMode, Display, TEXT("TheGameMode Working"));
