@@ -70,7 +70,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
 	UInputAction* _Shoot;
 	
-	//Adding controller action methods
+	//Adding controller action methods Client-Side
 	void MoveInput(const FInputActionInstance& Instance);
 	void LookInput(const FInputActionInstance& Instance);
 	void ActionInput(const FInputActionInstance& Instance);

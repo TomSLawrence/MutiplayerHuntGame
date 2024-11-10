@@ -14,22 +14,26 @@ void AThePlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	if(UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
+	if(IsLocalPlayerController())
 	{
-		EnhancedInputComponent->BindAction(_Move, ETriggerEvent::Triggered, this, &AThePlayerController::MoveInput);
-		EnhancedInputComponent->BindAction(_Look, ETriggerEvent::Triggered, this, &AThePlayerController::LookInput);
-		EnhancedInputComponent->BindAction(_Action, ETriggerEvent::Triggered, this, &AThePlayerController::ActionInput);
-		EnhancedInputComponent->BindAction(_Jump, ETriggerEvent::Triggered, this, &AThePlayerController::JumpInput);
-		EnhancedInputComponent->BindAction(_Sprint, ETriggerEvent::Triggered, this, &AThePlayerController::SprintInput);
-		EnhancedInputComponent->BindAction(_Sprint, ETriggerEvent::Completed, this, &AThePlayerController::StopSprintingInput);
-		EnhancedInputComponent->BindAction(_Crouch, ETriggerEvent::Triggered, this, &AThePlayerController::CrouchInput);
-		EnhancedInputComponent->BindAction(_Crouch, ETriggerEvent::Completed, this, &AThePlayerController::StandInput);
-		EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Triggered, this, &AThePlayerController::AimInput);
-		EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Completed, this, &AThePlayerController::StopAiming);
-		EnhancedInputComponent->BindAction(_Shoot, ETriggerEvent::Triggered, this, &AThePlayerController::ShootInput);
+		if(UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
+		{
+			EnhancedInputComponent->BindAction(_Move, ETriggerEvent::Triggered, this, &AThePlayerController::MoveInput);
+			EnhancedInputComponent->BindAction(_Look, ETriggerEvent::Triggered, this, &AThePlayerController::LookInput);
+			EnhancedInputComponent->BindAction(_Action, ETriggerEvent::Triggered, this, &AThePlayerController::ActionInput);
+			EnhancedInputComponent->BindAction(_Jump, ETriggerEvent::Triggered, this, &AThePlayerController::JumpInput);
+			EnhancedInputComponent->BindAction(_Sprint, ETriggerEvent::Triggered, this, &AThePlayerController::SprintInput);
+			EnhancedInputComponent->BindAction(_Sprint, ETriggerEvent::Completed, this, &AThePlayerController::StopSprintingInput);
+			EnhancedInputComponent->BindAction(_Crouch, ETriggerEvent::Triggered, this, &AThePlayerController::CrouchInput);
+			EnhancedInputComponent->BindAction(_Crouch, ETriggerEvent::Completed, this, &AThePlayerController::StandInput);
+			EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Triggered, this, &AThePlayerController::AimInput);
+			EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Completed, this, &AThePlayerController::StopAiming);
+			EnhancedInputComponent->BindAction(_Shoot, ETriggerEvent::Triggered, this, &AThePlayerController::ShootInput);
 
+		}
 	}
 }
+
 void AThePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -39,10 +43,10 @@ void AThePlayerController::BeginPlay()
 
 	if(_TheGameMode != nullptr)
 	{
+		SetReplicates(true);
 		PossessHunterCharacter();
 		_TheGameMode->OnHunterSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessHunterCharacter);
 		//_TheGameMode->OnSurvivorSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessSurvivorCharacter);
-		UE_LOG(LogThePlayerController, Display, TEXT("ThePlayerController Working"));
 	}
 }
 
@@ -60,7 +64,7 @@ void AThePlayerController::PossessSurvivorCharacter_Implementation()
 
 	if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
-		if(_SurvivorMappingContext)
+		if(_HunterMappingContext)
 		{
 			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(_SurvivorMappingContext,0);
@@ -107,6 +111,7 @@ void AThePlayerController::PossessHunterCharacter_Implementation()
 
 void AThePlayerController::MoveInput(const FInputActionInstance& Instance)
 {
+	UE_LOG(LogThePlayerController, Display, TEXT("Character Possessed"));
 	Execute_IAMove(_PlayerCharacter, Instance);
 }
 
@@ -159,3 +164,4 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 {
 	Execute_IAStopAiming(_PlayerCharacter, Instance);
 }
+
