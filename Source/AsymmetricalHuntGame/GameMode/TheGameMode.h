@@ -6,6 +6,8 @@
 #include "GameFramework/GameMode.h"
 #include "TheGameMode.generated.h"
 
+class ACharacter;
+class AHunter_Ghost;
 
 UCLASS(Abstract)
 class ASYMMETRICALHUNTGAME_API ATheGameMode : public AGameMode
@@ -31,8 +33,8 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void PossessHunterCharacter();
-	UFUNCTION(NetMulticast, Reliable)
-	void PossessSurvivorCharacter();
+	//UFUNCTION(NetMulticast, Reliable)
+	//void PossessSurvivorCharacter();
 
 };
 

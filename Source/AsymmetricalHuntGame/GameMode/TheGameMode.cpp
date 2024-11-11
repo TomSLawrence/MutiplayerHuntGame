@@ -12,16 +12,16 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogTheGameMode, Display, All);
 
-void ATheGameMode::BeginPlay()
-{
-	SpawnCharacters();
-}
-
 ATheGameMode::ATheGameMode()
 {
 	PlayerControllerClass = AThePlayerController::StaticClass();
 	GameStateClass = ATheGameState::StaticClass();
 	PlayerStateClass = AThePlayerState::StaticClass();
+}
+
+void ATheGameMode::BeginPlay()
+{
+	PossessHunterCharacter_Implementation();
 }
 
 
@@ -77,7 +77,8 @@ void ATheGameMode::PossessSurvivorCharacter_Implementation()
 		}
 	}
 }
-*/
+
+
 
 void ATheGameMode::SpawnCharacters()
 {
@@ -86,4 +87,4 @@ void ATheGameMode::SpawnCharacters()
 	UE_LOG(LogTheGameMode, Display, TEXT("TheGameMode Working"));
 }
 
-
+*/
