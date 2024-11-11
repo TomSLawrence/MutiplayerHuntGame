@@ -15,8 +15,6 @@ AProjectile_Ghost::AProjectile_Ghost()
 void AProjectile_Ghost::BeginPlay()
 {
 	Super::BeginPlay();
-
-	SetReplicates(true);
 	
 }
 

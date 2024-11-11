@@ -26,8 +26,11 @@ void AHunter_Base::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetReplicates(true);
-	SetReplicateMovement(true);
+	if(HasAuthority())
+	{
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
 
 	isAiming = false;
 }

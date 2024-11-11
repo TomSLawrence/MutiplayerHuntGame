@@ -26,6 +26,11 @@ void AProjectile_Base::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if(HasAuthority())
+	{
+		SetReplicates(true);
+	}
+
 	_ProjectileMovement->InitialSpeed = 10000;
 	_ProjectileMovement->MaxSpeed = 10000;
 	
