@@ -19,7 +19,7 @@ class ASurvivor_Craig;
 //Hunter Classes
 class AHunter_Ghost;
 
-UCLASS(Abstract)
+UCLASS()
 class ASYMMETRICALHUNTGAME_API AThePlayerController : public APlayerController, public IIAInterface
 {
 	GENERATED_BODY()
@@ -32,17 +32,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ASurvivor_Craig> TheSurvivorCharacter;
 
-	//Hunter Subclasses
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AHunter_Ghost> TheHunterCharacter;
-
-	//Character Subclass
 	UPROPERTY()
 	TObjectPtr<ACharacter> _PlayerCharacter;
 
 	//GameMode Reference
 	UPROPERTY()
 	TObjectPtr<ATheGameMode> _TheGameMode;
+	
 
 public:
 	
@@ -82,16 +78,5 @@ public:
 	void ShootInput(const FInputActionInstance& Instance);
 	void AimInput(const FInputActionInstance& Instance);
 	void StopAiming(const FInputActionInstance& Instance);
-
-	//Functions
-	void PossessSurvivorCharacter();
-	
-	UFUNCTION(Server, Reliable)
-	void S_PossessSurvivorCharacter();
-	
-	void PossessHunterCharacter();
-	
-	UFUNCTION(Server, Reliable)
-	void S_PossessHunterCharacter();
 };
 
