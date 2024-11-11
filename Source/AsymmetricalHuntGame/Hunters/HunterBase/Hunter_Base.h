@@ -21,27 +21,16 @@ public:
 	AHunter_Base();
 
 	//Player Movement/Looking Client-Side
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAMove_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IALook_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStopAiming_Implementation(const FInputActionInstance& Instance) override;
 
 	UFUNCTION(Server, Reliable)

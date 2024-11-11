@@ -40,74 +40,88 @@ void AThePlayerController::BeginPlay()
 
 	if(_TheGameMode != nullptr)
 	{
-		PossessHunterCharacter();
-		_TheGameMode->OnHunterSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessHunterCharacter);
+		if(UGameplayStatics::GetPlayerController(this, 0)->IsLocalController())
+		{
+			PossessHunterCharacter();
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Local Controller not found!"));
+		}
+		//_TheGameMode->OnHunterSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessHunterCharacter);
 		//_TheGameMode->OnSurvivorSpawn.AddUniqueDynamic(this, &AThePlayerController::PossessSurvivorCharacter);
 	}
 }
 
-void AThePlayerController::PossessSurvivorCharacter_Implementation()
+void AThePlayerController::PossessSurvivorCharacter()
 {
-	this->UnPossess();
-	
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	SpawnParams.Owner = GetOwner();
-	SpawnParams.Instigator = GetInstigator();
-
-	FVector SurvivorSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
-	FRotator SurvivorSpawnRotation(0.0f, 0.0f, 0.0f); 
-
-	if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	if(HasAuthority())
 	{
-		if(_HunterMappingContext)
+		this->UnPossess();
+	
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.Instigator = GetInstigator();
+
+		FVector SurvivorSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
+		FRotator SurvivorSpawnRotation(0.0f, 0.0f, 0.0f); 
+
+		if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
 			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(_SurvivorMappingContext,0);
 		}
-	}
-	_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheSurvivorCharacter, SurvivorSpawnLocation, SurvivorSpawnRotation, SpawnParams);
+		_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheSurvivorCharacter, SurvivorSpawnLocation, SurvivorSpawnRotation, SpawnParams);
 	
-	if(UGameplayStatics::GetPlayerController(this, 0))
+		if(UGameplayStatics::GetPlayerController(this, 0))
+		{
+			this->Possess(_PlayerCharacter);
+		}
+	}
+	else
 	{
-		this->Possess(_PlayerCharacter);
+		S_PossessSurvivorCharacter();
 	}
-	
 }
 
-void AThePlayerController::PossessHunterCharacter_Implementation()
+void AThePlayerController::PossessHunterCharacter()
 {
-	this->UnPossess();
-	
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	SpawnParams.Owner = GetOwner();
-	SpawnParams.Instigator = GetInstigator();
-
-	FVector HunterSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
-	FRotator HunterSpawnRotation(0.0f, 0.0f, 0.0f); 
-
-	if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	if(HasAuthority())
 	{
-		if(_SurvivorMappingContext)
+		this->UnPossess();
+	
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.Instigator = GetInstigator();
+
+		FVector HunterSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
+		FRotator HunterSpawnRotation(0.0f, 0.0f, 0.0f); 
+
+		if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
 			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(_HunterMappingContext,0);
 		}
-	}
-	_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheHunterCharacter, HunterSpawnLocation, HunterSpawnRotation, SpawnParams);
+		_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheHunterCharacter, HunterSpawnLocation, HunterSpawnRotation, SpawnParams);
 	
-	if(UGameplayStatics::GetPlayerController(this, 0))
-	{
-		this->Possess(_PlayerCharacter);
+		if(UGameplayStatics::GetPlayerController(this, 0))
+		{
+			this->Possess(_PlayerCharacter);
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Possessed Server!"));
+		}
 	}
-
+	else
+	{
+		S_PossessHunterCharacter();
+	}
 }
 
 
 void AThePlayerController::MoveInput(const FInputActionInstance& Instance)
 {
-	UE_LOG(LogThePlayerController, Display, TEXT("Character Possessed"));
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Moving Client!"));
 	Execute_IAMove(_PlayerCharacter, Instance);
 }
 
@@ -159,5 +173,57 @@ void AThePlayerController::AimInput(const FInputActionInstance& Instance)
 void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 {
 	Execute_IAStopAiming(_PlayerCharacter, Instance);
+}
+
+
+void AThePlayerController::S_PossessHunterCharacter_Implementation()
+{
+	this->UnPossess();
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	SpawnParams.Owner = GetOwner();
+	SpawnParams.Instigator = GetInstigator();
+
+	FVector HunterSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
+	FRotator HunterSpawnRotation(0.0f, 0.0f, 0.0f); 
+
+	if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		Subsystem->ClearAllMappings();
+		Subsystem->AddMappingContext(_HunterMappingContext,0);
+	}
+	_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheHunterCharacter, HunterSpawnLocation, HunterSpawnRotation, SpawnParams);
+	
+	if(UGameplayStatics::GetPlayerController(this, 0))
+	{
+		this->Possess(_PlayerCharacter);
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Possessed Client!"));
+	}
+}
+
+void AThePlayerController::S_PossessSurvivorCharacter_Implementation()
+{
+	this->UnPossess();
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	SpawnParams.Owner = GetOwner();
+	SpawnParams.Instigator = GetInstigator();
+
+	FVector SurvivorSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
+	FRotator SurvivorSpawnRotation(0.0f, 0.0f, 0.0f); 
+
+	if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		Subsystem->ClearAllMappings();
+		Subsystem->AddMappingContext(_SurvivorMappingContext,0);
+	}
+	_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheSurvivorCharacter, SurvivorSpawnLocation, SurvivorSpawnRotation, SpawnParams);
+	
+	if(UGameplayStatics::GetPlayerController(this, 0))
+	{
+		this->Possess(_PlayerCharacter);
+	}
 }
 

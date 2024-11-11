@@ -84,12 +84,14 @@ public:
 	void StopAiming(const FInputActionInstance& Instance);
 
 	//Functions
-	UFUNCTION(NetMulticast, Reliable)
 	void PossessSurvivorCharacter();
-	UFUNCTION(NetMulticast, Reliable)
+	
+	UFUNCTION(Server, Reliable)
+	void S_PossessSurvivorCharacter();
+	
 	void PossessHunterCharacter();
-
-
-	//Server Functions
+	
+	UFUNCTION(Server, Reliable)
+	void S_PossessHunterCharacter();
 };
 

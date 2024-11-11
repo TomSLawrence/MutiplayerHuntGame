@@ -7,6 +7,11 @@ DEFINE_LOG_CATEGORY_STATIC(LogHunterBase, Display, All);
 
 AHunter_Base::AHunter_Base()
 {
+	if(HasAuthority())
+	{
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
 	_Collision = GetCapsuleComponent();
 	_CharacterMovement = GetCharacterMovement();
 	_PlayerVelocity = _CharacterMovement->GetLastUpdateVelocity();
@@ -26,16 +31,11 @@ void AHunter_Base::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(HasAuthority())
-	{
-		SetReplicates(true);
-		SetReplicateMovement(true);
-	}
 
 	isAiming = false;
 }
 
-void AHunter_Base::IAMove_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAMove_Implementation(const FInputActionInstance& Instance)
 {
 	if(HasAuthority())
 	{
@@ -59,7 +59,7 @@ void AHunter_Base::IAMove_Implementation_Implementation(const FInputActionInstan
 	}
 }
 
-void AHunter_Base::IALook_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IALook_Implementation(const FInputActionInstance& Instance)
 {
 	if(HasAuthority())
 	{
@@ -97,47 +97,47 @@ void AHunter_Base::IALook_Implementation_Implementation(const FInputActionInstan
 	}
 }
 
-void AHunter_Base::IAAction_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAAction_Implementation(const FInputActionInstance& Instance)
 {
 	S_Action_Implementation(Instance);
 }
 
-void AHunter_Base::IASprint_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IASprint_Implementation(const FInputActionInstance& Instance)
 {
 	S_Sprint_Implementation(Instance);
 }
 
-void AHunter_Base::IAStopSprinting_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAStopSprinting_Implementation(const FInputActionInstance& Instance)
 {
 	S_StopSprinting_Implementation(Instance);
 }
 
-void AHunter_Base::IACrouch_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IACrouch_Implementation(const FInputActionInstance& Instance)
 {
 	S_Crouch_Implementation(Instance);
 }
 
-void AHunter_Base::IAStand_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAStand_Implementation(const FInputActionInstance& Instance)
 {
 	S_Stand_Implementation(Instance);
 }
 
-void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAJump_Implementation(const FInputActionInstance& Instance)
 {
 	S_Jump_Implementation(Instance);
 }
 
-void AHunter_Base::IAShoot_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAShoot_Implementation(const FInputActionInstance& Instance)
 {
 	S_Shoot_Implementation(Instance);
 }
 
-void AHunter_Base::IAAim_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAAim_Implementation(const FInputActionInstance& Instance)
 {
 	S_Aim_Implementation(Instance);
 }
 
-void AHunter_Base::IAStopAiming_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAStopAiming_Implementation(const FInputActionInstance& Instance)
 {
 	S_StopAiming_Implementation(Instance);
 }

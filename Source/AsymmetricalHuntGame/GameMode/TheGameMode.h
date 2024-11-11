@@ -17,6 +17,8 @@ class ASYMMETRICALHUNTGAME_API ATheGameMode : public AGameMode
 public:
 	virtual void BeginPlay() override;
 
+	ATheGameMode();
+
 	UPROPERTY()
 	FSpawnHunterCharacter OnHunterSpawn;
 	UPROPERTY()
@@ -24,7 +26,7 @@ public:
 	
 protected:
 	UFUNCTION(NetMulticast, Reliable)
-	void SpawnCharacters();
+	void S_SpawnCharacters();
 
 };
 
