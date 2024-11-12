@@ -8,6 +8,7 @@
 
 class ACharacter;
 class AHunter_Ghost;
+class AThePlayerController;
 
 UCLASS(Abstract)
 class ASYMMETRICALHUNTGAME_API ATheGameMode : public AGameMode
@@ -21,20 +22,18 @@ public:
 	
 protected:
 
-	//Character Subclass
-	UPROPERTY()
-	TObjectPtr<ACharacter> _PlayerCharacter;
-
 	//Hunter Subclasses
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<AHunter_Ghost> TheHunterCharacter;
-	
-	void SpawnCharacters();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void PossessHunterCharacter();
-	//UFUNCTION(NetMulticast, Reliable)
-	//void PossessSurvivorCharacter();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<AThePlayerController> _PlayerController;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ACharacter> _PlayerCharacter;
+
+	UFUNCTION(Server, Reliable)
+	void SpawnCharacters();
 
 };
 

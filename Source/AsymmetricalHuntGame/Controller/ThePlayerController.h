@@ -26,6 +26,7 @@ class ASYMMETRICALHUNTGAME_API AThePlayerController : public APlayerController, 
 
 protected:
 
+	AThePlayerController();
 	virtual void BeginPlay() override;
 
 	//Survivor Subclasses

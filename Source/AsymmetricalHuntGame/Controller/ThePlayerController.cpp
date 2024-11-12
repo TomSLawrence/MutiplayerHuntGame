@@ -29,6 +29,19 @@ void AThePlayerController::SetupInputComponent()
 	}
 }
 
+AThePlayerController::AThePlayerController()
+{
+	if(this != nullptr)
+	{
+		SetReplicates(true);
+		UE_LOG(LogTemp, Log, TEXT("Controller is not null"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Controller is null"));
+	}
+}
+
 void AThePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -44,13 +57,9 @@ void AThePlayerController::BeginPlay()
 			Subsystem->AddMappingContext(_HunterMappingContext,0);
 		}
 		
-		if(UGameplayStatics::GetPlayerController(this, 0)->IsLocalController())
+		for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Local Controller found!"));
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Local Controller not found!"));
 		}
 	}
 }
