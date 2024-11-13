@@ -33,7 +33,7 @@ protected:
 	TSubclassOf<ASurvivor_Craig> TheSurvivorCharacter;
 
 	UPROPERTY()
-	TObjectPtr<ACharacter> _PlayerCharacter;
+	TObjectPtr<ACharacter> _PlayerCharacterPC;
 	
 
 public:

@@ -75,4 +75,58 @@ void AHunter_Ghost::IAAim_Implementation(const FInputActionInstance& Instance)
 	Super::IAAim_Implementation(Instance);
 }
 
+void AHunter_Ghost::S_Move_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_Move_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_Look_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_Look_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_Action_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_Action_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_Sprint_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_Sprint_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_StopSprinting_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_StopSprinting_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_Crouch_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_Crouch_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_Stand_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_Stand_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_Jump_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_Jump_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_Shoot_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_Shoot_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_Aim_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_Aim_Implementation(Instance);
+}
+
+void AHunter_Ghost::S_StopAiming_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	Super::S_StopAiming_Implementation(Instance);
+}
 

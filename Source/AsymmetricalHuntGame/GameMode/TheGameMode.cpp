@@ -70,18 +70,9 @@ void ATheGameMode::GM_SpawnCharacters(AThePlayerController* _PlayerController)
 		{
 			_PlayerController->UnPossess();
 			_PlayerController->Possess(_PlayerCharacter);
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Possessed Server!"));
-		}
-		else if (_PlayerController == nullptr)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Not Possessed!"));
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Possessed Character!"));
 		}
 	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Character Not Spawned!"));
-	}
-		
 }
 
 /*
