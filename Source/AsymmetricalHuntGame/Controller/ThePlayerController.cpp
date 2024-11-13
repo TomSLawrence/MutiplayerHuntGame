@@ -29,26 +29,11 @@ void AThePlayerController::SetupInputComponent()
 	}
 }
 
-AThePlayerController::AThePlayerController()
-{
-	if(this != nullptr)
-	{
-		SetReplicates(true);
-		UE_LOG(LogTemp, Log, TEXT("Controller is not null"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("Controller is null"));
-	}
-}
-
 void AThePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	//Spawn Player Characters (Make if statement here to decide which character is being spawned).
-	_TheGameMode = Cast<ATheGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
+	/*
 	if(_TheGameMode != nullptr)
 	{
 		if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
@@ -56,11 +41,15 @@ void AThePlayerController::BeginPlay()
 			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(_HunterMappingContext,0);
 		}
-		
-		for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Local Controller found!"));
-		}
+	}
+	*/
+}
+
+void AThePlayerController::PC_SpawnCharacters(ATheGameMode* _GameModeRef)
+{
+	if(_GameModeRef != nullptr)
+	{
+		_GameModeRef->GM_SpawnCharacters(this);
 	}
 }
 
@@ -119,3 +108,5 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 {
 	Execute_IAStopAiming(_PlayerCharacter, Instance);
 }
+
+

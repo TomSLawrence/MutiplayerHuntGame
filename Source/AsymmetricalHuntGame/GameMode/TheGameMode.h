@@ -20,20 +20,24 @@ public:
 
 	ATheGameMode();
 	
+	UFUNCTION()
+	void GM_SpawnCharacters(AThePlayerController* _PlayerControllerRef);
+	
 protected:
 
 	//Hunter Subclasses
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<AHunter_Ghost> TheHunterCharacter;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<AThePlayerController> _PlayerController;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY()
 	TObjectPtr<ACharacter> _PlayerCharacter;
 
-	UFUNCTION(Server, Reliable)
-	void SpawnCharacters();
+
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<AController*> _ConnectedPlayers;
+	
+	virtual void OnPostLogin(AController* NewPlayer) override;
 
 };
 

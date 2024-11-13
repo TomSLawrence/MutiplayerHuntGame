@@ -7,11 +7,9 @@ DEFINE_LOG_CATEGORY_STATIC(LogHunterBase, Display, All);
 
 AHunter_Base::AHunter_Base()
 {
-	if(HasAuthority())
-	{
-		SetReplicates(true);
-		SetReplicateMovement(true);
-	}
+	SetReplicates(true);
+	SetReplicateMovement(true);
+	
 	_Collision = GetCapsuleComponent();
 	_CharacterMovement = GetCharacterMovement();
 	_PlayerVelocity = _CharacterMovement->GetLastUpdateVelocity();

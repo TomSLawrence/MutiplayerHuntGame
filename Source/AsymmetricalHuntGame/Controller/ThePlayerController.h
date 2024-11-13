@@ -25,8 +25,7 @@ class ASYMMETRICALHUNTGAME_API AThePlayerController : public APlayerController, 
 	GENERATED_BODY()
 
 protected:
-
-	AThePlayerController();
+	
 	virtual void BeginPlay() override;
 
 	//Survivor Subclasses
@@ -35,10 +34,6 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<ACharacter> _PlayerCharacter;
-
-	//GameMode Reference
-	UPROPERTY()
-	TObjectPtr<ATheGameMode> _TheGameMode;
 	
 
 public:
@@ -79,5 +74,8 @@ public:
 	void ShootInput(const FInputActionInstance& Instance);
 	void AimInput(const FInputActionInstance& Instance);
 	void StopAiming(const FInputActionInstance& Instance);
+
+	UFUNCTION(BlueprintCallable)
+	void PC_SpawnCharacters(ATheGameMode* _GameModeRef);
 };
 
