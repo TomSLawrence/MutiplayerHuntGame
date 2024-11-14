@@ -35,39 +35,26 @@ protected:
 public:
 
 	//Player Movement/Looking
-	virtual void IAMove_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(Server, Reliable)
+	virtual void IAMove_Implementation(float _MoveX, float _MoveY) override;
+	UFUNCTION(Server, Reliable)
 	virtual void IALook_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(Server, Reliable)
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(Server, Reliable)
 	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(Server, Reliable)
 	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(Server, Reliable)
 	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(Server, Reliable)
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(Server, Reliable)
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(Server, Reliable)
 	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(Server, Reliable)
 	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
-
-	UFUNCTION(Server, Reliable)
-	virtual void S_Move_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_Look_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_Action_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_Sprint_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_StopSprinting_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_Crouch_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_Stand_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_Jump_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_Shoot_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_Aim_Implementation(const FInputActionInstance& Instance);
-	UFUNCTION(Server, Reliable)
-	virtual void S_StopAiming_Implementation(const FInputActionInstance& Instance);
 
 };
 

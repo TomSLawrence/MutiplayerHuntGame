@@ -20,14 +20,11 @@ public:
 
 	ATheGameMode();
 	
-	UFUNCTION()
+	UFUNCTION(Server, Reliable)
 	void GM_SpawnCharacters(AThePlayerController* _PlayerControllerRef);
 	
-	UPROPERTY()
-	TObjectPtr<ACharacter> _PlayerCharacter;
-	
 	UPROPERTY(BlueprintReadOnly)
-	TArray<AController*> _ConnectedPlayers;
+	TArray<AThePlayerController*> _ConnectedPlayers;
 	
 protected:
 

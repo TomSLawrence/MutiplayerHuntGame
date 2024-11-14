@@ -23,25 +23,20 @@ void ATheGameMode::OnPostLogin(AController* NewPlayer)
 {
 	Super::OnPostLogin(NewPlayer);
 
-	_ConnectedPlayers.Add(NewPlayer);
+	AThePlayerController* _NewPlayerController = Cast<AThePlayerController>(NewPlayer);
+	_ConnectedPlayers.Add(_NewPlayerController);
+	
 }
 
 void ATheGameMode::BeginPlay()
 {
-
-	ATheGameState* _GameState = GetWorld()->GetGameState<ATheGameState>();
-	if (_GameState)
-	{
-		int _NumberOfPlayers = _GameState->PlayerArray.Num();
-		UE_LOG(LogTemp, Log, TEXT("Number of players in the game: %d"), _NumberOfPlayers);
-	}
+	
 }
 
 
-void ATheGameMode::GM_SpawnCharacters(AThePlayerController* _PlayerController)
+void ATheGameMode::GM_SpawnCharacters_Implementation(AThePlayerController* _PlayerController)
 {
-	
-	// Set spawn location and rotation (you can customize this for each player)
+
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnParams.Owner = GetOwner();
@@ -49,23 +44,10 @@ void ATheGameMode::GM_SpawnCharacters(AThePlayerController* _PlayerController)
 
 	FVector HunterSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
 	FRotator HunterSpawnRotation(0.0f, 0.0f, 0.0f); 
-
-	// Spawn the character on the server
 	if(IsValid(TheHunterCharacter))
 	{
-		_PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheHunterCharacter, HunterSpawnLocation, HunterSpawnRotation, SpawnParams);
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, TEXT("Spawning Characters!"));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Not Spawning Characters!"));
-	}
-	
-	if(_PlayerCharacter)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Character Spawned!"));
-                
-		// PlayerController possess the character
+		ACharacter* _PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(TheHunterCharacter, HunterSpawnLocation, HunterSpawnRotation, SpawnParams);
+
 		if(_PlayerController != nullptr)
 		{
 			_PlayerController->UnPossess();

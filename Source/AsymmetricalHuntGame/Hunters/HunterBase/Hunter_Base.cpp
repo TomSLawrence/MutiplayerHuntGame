@@ -7,8 +7,6 @@ DEFINE_LOG_CATEGORY_STATIC(LogHunterBase, Display, All);
 
 AHunter_Base::AHunter_Base()
 {
-	SetReplicates(true);
-	SetReplicateMovement(true);
 	
 	_Collision = GetCapsuleComponent();
 	_CharacterMovement = GetCharacterMovement();
@@ -21,6 +19,9 @@ AHunter_Base::AHunter_Base()
 	
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
+	
+	SetReplicates(true);
+	SetReplicateMovement(true);
 }
 
 
@@ -33,28 +34,9 @@ void AHunter_Base::BeginPlay()
 	isAiming = false;
 }
 
-void AHunter_Base::IAMove_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAMove_Implementation(float _MoveX, float _MoveY)
 {
-	if(HasAuthority())
-	{
-		if(Controller != nullptr)
-		{
-			const FVector2d MoveValue = Instance.GetValue().Get<FVector2d>();
-
-			if(MoveValue.Y != 0.f)
-			{
-				AddMovementInput(GetActorForwardVector(), MoveValue.Y);
-			}
-			if(MoveValue.X != 0.f)
-			{
-				AddMovementInput(GetActorRightVector(), MoveValue.X);
-			}
-		}
-	}
-	else
-	{
-		S_Move_Implementation(Instance);
-	}
+	IAMove_Implementation(_MoveX, _MoveY);
 }
 
 void AHunter_Base::IALook_Implementation(const FInputActionInstance& Instance)
@@ -89,59 +71,59 @@ void AHunter_Base::IALook_Implementation(const FInputActionInstance& Instance)
 			}
 		}
 	}
-	else
-	{
-		S_Look_Implementation(Instance);
-	}
 }
 
 void AHunter_Base::IAAction_Implementation(const FInputActionInstance& Instance)
 {
-	S_Action_Implementation(Instance);
+	bool BoolValue = Instance.GetValue().Get<bool>();
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("FIRE!"));
 }
 
 void AHunter_Base::IASprint_Implementation(const FInputActionInstance& Instance)
 {
-	S_Sprint_Implementation(Instance);
+	_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
 }
 
 void AHunter_Base::IAStopSprinting_Implementation(const FInputActionInstance& Instance)
 {
-	S_StopSprinting_Implementation(Instance);
+	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 }
 
 void AHunter_Base::IACrouch_Implementation(const FInputActionInstance& Instance)
 {
-	S_Crouch_Implementation(Instance);
+	Crouch();
 }
 
 void AHunter_Base::IAStand_Implementation(const FInputActionInstance& Instance)
 {
-	S_Stand_Implementation(Instance);
+	UnCrouch();
 }
 
 void AHunter_Base::IAJump_Implementation(const FInputActionInstance& Instance)
 {
-	S_Jump_Implementation(Instance);
+	Jump();
 }
 
 void AHunter_Base::IAShoot_Implementation(const FInputActionInstance& Instance)
 {
-	S_Shoot_Implementation(Instance);
+	IIAInterface::IAShoot_Implementation(Instance);
 }
 
 void AHunter_Base::IAAim_Implementation(const FInputActionInstance& Instance)
 {
-	S_Aim_Implementation(Instance);
+	isAiming = true;
+	_Camera->SetFieldOfView(30.0f);
+	UE_LOG(LogHunterBase, Display, TEXT("Aiming"));
 }
 
 void AHunter_Base::IAStopAiming_Implementation(const FInputActionInstance& Instance)
 {
-	S_StopAiming_Implementation(Instance);
+	isAiming = false;
+	_Camera->SetFieldOfView(90.0f);
 }
 
 
-
+/*
 void AHunter_Base::S_Move_Implementation(const FInputActionInstance& Instance)
 {
 	if(Controller != nullptr)
@@ -189,52 +171,6 @@ void AHunter_Base::S_Look_Implementation(const FInputActionInstance& Instance)
 		}
 	}
 }
+*/
 
-void AHunter_Base::S_Action_Implementation(const FInputActionInstance& Instance)
-{
-	bool BoolValue = Instance.GetValue().Get<bool>();
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("FIRE!"));
-}
 
-void AHunter_Base::S_Sprint_Implementation(const FInputActionInstance& Instance)
-{
-	_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
-}
-
-void AHunter_Base::S_StopSprinting_Implementation(const FInputActionInstance& Instance)
-{
-	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
-}
-
-void AHunter_Base::S_Crouch_Implementation(const FInputActionInstance& Instance)
-{
-	Crouch();
-}
-
-void AHunter_Base::S_Stand_Implementation(const FInputActionInstance& Instance)
-{
-	UnCrouch();
-}
-
-void AHunter_Base::S_Jump_Implementation(const FInputActionInstance& Instance)
-{
-	Jump();
-}
-
-void AHunter_Base::S_Shoot_Implementation(const FInputActionInstance& Instance)
-{
-	IIAInterface::IAShoot_Implementation(Instance);
-}
-
-void AHunter_Base::S_Aim_Implementation(const FInputActionInstance& Instance)
-{
-	isAiming = true;
-	_Camera->SetFieldOfView(30.0f);
-	UE_LOG(LogHunterBase, Display, TEXT("Aiming"));
-}
-
-void AHunter_Base::S_StopAiming_Implementation(const FInputActionInstance& Instance)
-{
-	isAiming = false;
-	_Camera->SetFieldOfView(90.0f);
-}

@@ -21,7 +21,7 @@ public:
 	AHunter_Base();
 
 	//Player Movement/Looking Client-Side
-	virtual void IAMove_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAMove_Implementation(float _MoveX, float _MoveY) override;
 	virtual void IALook_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
@@ -32,18 +32,6 @@ public:
 	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAStopAiming_Implementation(const FInputActionInstance& Instance) override;
-	
-	virtual void S_Move_Implementation(const FInputActionInstance& Instance);
-	virtual void S_Look_Implementation(const FInputActionInstance& Instance);
-	virtual void S_Action_Implementation(const FInputActionInstance& Instance);
-	virtual void S_Sprint_Implementation(const FInputActionInstance& Instance);
-	virtual void S_StopSprinting_Implementation(const FInputActionInstance& Instance);
-	virtual void S_Crouch_Implementation(const FInputActionInstance& Instance);
-	virtual void S_Stand_Implementation(const FInputActionInstance& Instance);
-	virtual void S_Jump_Implementation(const FInputActionInstance& Instance);
-	virtual void S_Shoot_Implementation(const FInputActionInstance& Instance);
-	virtual void S_Aim_Implementation(const FInputActionInstance& Instance);
-	virtual void S_StopAiming_Implementation(const FInputActionInstance& Instance);
 
 
 	//Player Components

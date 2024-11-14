@@ -37,6 +37,19 @@ protected:
 	
 
 public:
+
+	//Action Values
+
+	UPROPERTY()
+	float _MoveX;
+	UPROPERTY()
+	float _MoveY;
+	UPROPERTY()
+	float _LookX;
+	UPROPERTY()
+	float _LookY;
+
+
 	
 	virtual void SetupInputComponent() override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
@@ -74,6 +87,29 @@ public:
 	void ShootInput(const FInputActionInstance& Instance);
 	void AimInput(const FInputActionInstance& Instance);
 	void StopAiming(const FInputActionInstance& Instance);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_MoveInput(float _MoveX, float _MoveY);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_LookInput(float _LookX, float _LookY);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_ActionInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_SprintInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_StopSprintingInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_CrouchInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_StandInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_JumpInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_ShootInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_AimInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_StopAiming(const FInputActionInstance& Instance);
 
 	UFUNCTION(BlueprintCallable)
 	void PC_SpawnCharacters(ATheGameMode* _GameModeRef);

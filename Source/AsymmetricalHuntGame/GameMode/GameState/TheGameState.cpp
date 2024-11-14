@@ -2,3 +2,8 @@
 
 
 #include "TheGameState.h"
+
+ATheGameState::ATheGameState()
+{
+	SetReplicates(true);
+}
