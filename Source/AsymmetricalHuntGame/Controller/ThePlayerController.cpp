@@ -4,6 +4,8 @@
 #include "GameFramework/Character.h"
 #include "AsymmetricalHuntGame/Survivors/Survivor_Craig/Survivor_Craig.h"
 #include "AsymmetricalHuntGame/GameMode/TheGameMode.h"
+#include "AsymmetricalHuntGame/Hunters/HunterBase/Hunter_Base.h"
+#include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Hunter_Ghost.h"
 #include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogThePlayerController, Display, All);
@@ -51,33 +53,40 @@ void AThePlayerController::PC_SpawnCharacters(ATheGameMode* _GameModeRef)
 
 void AThePlayerController::MoveInput(const FInputActionInstance& Instance)
 {
-	const FVector2d MoveValue = Instance.GetValue().Get<FVector2d>();
-	_MoveX = MoveValue.X;
-	_MoveY = MoveValue.Y;
-	
 	if(HasAuthority())
 	{
-		Execute_IAMove(GetCharacter(), Instance);
+		AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
+
+		if(_PossessedCharacter != nullptr)
+		{
+			const FVector MoveValue = Instance.GetValue().Get<FVector>();
+			_PossessedCharacter->IACharacterMove(MoveValue);
+		}
+	
 	}
 	else
 	{
-		S_MoveInput(_MoveX, _MoveY);
+		const FVector MoveValue = Instance.GetValue().Get<FVector>();
+		S_MoveInput(MoveValue);
 	}
 }
 
 void AThePlayerController::LookInput(const FInputActionInstance& Instance)
 {
-	const FVector2d LookValue = Instance.GetValue().Get<FVector2d>();
-	_LookX = LookValue.X;
-	_LookY = LookValue.Y;
-	
 	if(HasAuthority())
 	{
-		Execute_IALook(GetCharacter(), Instance);
+		AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
+
+		if(_PossessedCharacter != nullptr)
+		{
+			const FVector LookValue = Instance.GetValue().Get<FVector>();
+			_PossessedCharacter->IACharacterLook(LookValue);
+		}
 	}
 	else
 	{
-		S_LookInput(_LookX, _LookY);
+		const FVector LookValue = Instance.GetValue().Get<FVector>();
+		S_LookInput(LookValue);
 	}
 }
 
@@ -196,14 +205,25 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 
 //Server Functions
 
-void AThePlayerController::S_MoveInput_Implementation(float _MoveX, float _MoveY)
+void AThePlayerController::S_MoveInput_Implementation(const FVector _PlayerInput)
 {
-	Execute_IAMove(GetCharacter(), _MoveX, _MoveY);
+	AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
+
+	if(_PossessedCharacter != nullptr)
+	{
+		_PossessedCharacter->IACharacterMove(_PlayerInput);
+	}
+	
 }
 
-void AThePlayerController::S_LookInput_Implementation(float _LookX, float _LookY)
+void AThePlayerController::S_LookInput_Implementation(const FVector _PlayerInput)
 {
-	Execute_IALook(GetCharacter(), _LookX, _LookY);
+	AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
+
+	if(_PossessedCharacter != nullptr)
+	{
+		_PossessedCharacter->IACharacterLook(_PlayerInput);
+	}
 }
 
 void AThePlayerController::S_ActionInput_Implementation(const FInputActionInstance& Instance)
@@ -256,12 +276,12 @@ void AThePlayerController::S_StopAiming_Implementation(const FInputActionInstanc
 
 //Server Validation
 
-bool AThePlayerController::S_MoveInput_Validate(float _MoveX, float _MoveY)
+bool AThePlayerController::S_MoveInput_Validate(const FVector _PlayerInput)
 {
 	return true;
 }
 
-bool AThePlayerController::S_LookInput_Validate(const FInputActionInstance& Instance)
+bool AThePlayerController::S_LookInput_Validate(const FVector _PlayerInput)
 {
 	return true;
 }

@@ -21,9 +21,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	virtual void IAMove_Implementation(const FInputActionInstance& Instance) override;
-	virtual void IALook_Implementation(const FInputActionInstance& Instance) override;
+	
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;

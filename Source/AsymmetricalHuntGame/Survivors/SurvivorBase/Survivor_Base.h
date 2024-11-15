@@ -18,9 +18,7 @@ public:
 	// Sets default values for this pawn's properties
 	ASurvivor_Base();
 
-	//Player Movement/Looking
-	virtual void IAMove_Implementation(const FInputActionInstance& Instance) override;
-	virtual void IALook_Implementation(const FInputActionInstance& Instance) override;
+
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;

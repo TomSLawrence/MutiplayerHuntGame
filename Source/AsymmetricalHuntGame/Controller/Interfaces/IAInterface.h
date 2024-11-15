@@ -23,12 +23,6 @@ class ASYMMETRICALHUNTGAME_API IIAInterface
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void IAAction(const FInputActionInstance& Instance);
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void IAMove(const FInputActionInstance& Instance);
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void IALook(const FInputActionInstance& Instance);
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void IASprint(const FInputActionInstance& Instance);

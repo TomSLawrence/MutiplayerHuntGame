@@ -11,7 +11,7 @@ class AHunter_Ghost;
 class AThePlayerController;
 
 UCLASS(Abstract)
-class ASYMMETRICALHUNTGAME_API ATheGameMode : public AGameMode
+class ASYMMETRICALHUNTGAME_API ATheGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 

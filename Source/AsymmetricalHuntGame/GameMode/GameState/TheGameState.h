@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class ASYMMETRICALHUNTGAME_API ATheGameState : public AGameState
+class ASYMMETRICALHUNTGAME_API ATheGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 

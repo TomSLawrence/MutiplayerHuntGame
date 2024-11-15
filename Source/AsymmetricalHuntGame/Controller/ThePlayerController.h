@@ -37,19 +37,6 @@ protected:
 	
 
 public:
-
-	//Action Values
-
-	UPROPERTY()
-	float _MoveX;
-	UPROPERTY()
-	float _MoveY;
-	UPROPERTY()
-	float _LookX;
-	UPROPERTY()
-	float _LookY;
-
-
 	
 	virtual void SetupInputComponent() override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
@@ -89,9 +76,9 @@ public:
 	void StopAiming(const FInputActionInstance& Instance);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void S_MoveInput(float _MoveX, float _MoveY);
+	void S_MoveInput(const FVector _PlayerInput);
 	UFUNCTION(Server, Reliable, WithValidation)
-	void S_LookInput(float _LookX, float _LookY);
+	void S_LookInput(const FVector _PlayerInput);
 	UFUNCTION(Server, Reliable, WithValidation)
 	void S_ActionInput(const FInputActionInstance& Instance);
 	UFUNCTION(Server, Reliable, WithValidation)

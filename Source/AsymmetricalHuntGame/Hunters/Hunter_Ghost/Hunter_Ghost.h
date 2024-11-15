@@ -10,6 +10,8 @@ class AProjectile_Ghost;
 class UArrowComponent;
 class UCameraComponent;
 
+
+
 UCLASS()
 class ASYMMETRICALHUNTGAME_API AHunter_Ghost : public AHunter_Base
 {
@@ -35,25 +37,16 @@ protected:
 public:
 
 	//Player Movement/Looking
-	UFUNCTION(Server, Reliable)
-	virtual void IAMove_Implementation(float _MoveX, float _MoveY) override;
-	UFUNCTION(Server, Reliable)
-	virtual void IALook_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(Server, Reliable)
+	virtual void IACharacterMove(FVector _InputAxis) override;
+	virtual void IACharacterLook(FVector _InputAxis) override;
+
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(Server, Reliable)
 	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(Server, Reliable)
 	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(Server, Reliable)
 	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(Server, Reliable)
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(Server, Reliable)
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(Server, Reliable)
 	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(Server, Reliable)
 	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
 
 };

@@ -30,40 +30,6 @@ void ASurvivor_Base::BeginPlay()
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 }
 
-void ASurvivor_Base::IAMove_Implementation(const FInputActionInstance& Instance)
-{
-	if(Controller != nullptr)
-	{
-		const FVector2d MoveValue = Instance.GetValue().Get<FVector2d>();
-
-		if(MoveValue.Y != 0.f)
-		{
-			AddMovementInput(GetActorForwardVector(), MoveValue.Y);
-		}
-		if(MoveValue.X != 0.f)
-		{
-			AddMovementInput(GetActorRightVector(), MoveValue.X);
-		}
-	}
-}
-
-void ASurvivor_Base::IALook_Implementation(const FInputActionInstance& Instance)
-{
-	if(Controller != nullptr)
-	{
-		const FVector2d AxisValue = Instance.GetValue().Get<FVector2d>();
-
-		if(AxisValue.Y != 0.f)
-		{
-			AddControllerPitchInput(AxisValue.Y);
-		}
-		if(AxisValue.X != 0.f)
-		{
-			AddControllerYawInput(AxisValue.X);
-		}
-	}
-}
-
 void ASurvivor_Base::IAAction_Implementation(const FInputActionInstance& Instance)
 {
 	bool BoolValue = Instance.GetValue().Get<bool>();

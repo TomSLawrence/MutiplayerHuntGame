@@ -19,6 +19,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/../../UnrealEngine versions/UE_5.3/Engine/Source/Runtime/Engine/Private/UnrealEngine.cpp" root0="SKIP_HIGHLIGHTING" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
 }</component>
@@ -250,6 +253,8 @@
       <workItem from="1731465665187" duration="12655000" />
       <workItem from="1731518936369" duration="8098000" />
       <workItem from="1731538211357" duration="18023000" />
+      <workItem from="1731597629145" duration="4668000" />
+      <workItem from="1731636663751" duration="7807000" />
     </task>
     <servers />
   </component>

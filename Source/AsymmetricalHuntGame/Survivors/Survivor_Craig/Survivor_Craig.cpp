@@ -21,16 +21,6 @@ void ASurvivor_Craig::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void ASurvivor_Craig::IAMove_Implementation(const FInputActionInstance& Instance)
-{
-	Super::IAMove_Implementation(Instance);
-}
-
-void ASurvivor_Craig::IALook_Implementation(const FInputActionInstance& Instance)
-{
-	Super::IALook_Implementation(Instance);
-}
-
 void ASurvivor_Craig::IAAction_Implementation(const FInputActionInstance& Instance)
 {
 	Super::IAAction_Implementation(Instance);
