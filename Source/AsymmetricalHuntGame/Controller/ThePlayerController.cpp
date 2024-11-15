@@ -55,6 +55,7 @@ void AThePlayerController::MoveInput(const FInputActionInstance& Instance)
 {
 	if(HasAuthority())
 	{
+		
 		AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
 
 		if(_PossessedCharacter != nullptr)
@@ -62,6 +63,9 @@ void AThePlayerController::MoveInput(const FInputActionInstance& Instance)
 			const FVector MoveValue = Instance.GetValue().Get<FVector>();
 			_PossessedCharacter->IACharacterMove(MoveValue);
 		}
+		
+
+		const FVector MoveValue = Instance.GetValue().Get<FVector>();
 	
 	}
 	else
@@ -207,6 +211,7 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 
 void AThePlayerController::S_MoveInput_Implementation(const FVector _PlayerInput)
 {
+	
 	AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
 
 	if(_PossessedCharacter != nullptr)
