@@ -9,6 +9,7 @@
 
 class UCapsuleComponent;
 class UCameraComponent;
+class UArrowComponent;
 class UCharacterMovementComponent;
 
 UCLASS(Abstract)
@@ -19,8 +20,7 @@ class ASYMMETRICALHUNTGAME_API AHunter_Base : public ACharacter, public IIAInter
 public:
 	// Sets default values for this character's properties
 	AHunter_Base();
-
-	//Player Movement/Looking Client-Side
+	
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IACharacterMove(FVector _InputAxis);
 	UFUNCTION(NetMulticast, Reliable)
@@ -58,6 +58,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCharacterMovementComponent> _CharacterMovement;
 
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UArrowComponent> _ProjectileSpawn;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -69,6 +72,11 @@ protected:
 	float _WalkSpeed;
 	UPROPERTY(EditAnywhere)
 	float _CrouchSpeed;
+
+	UPROPERTY()
+	FVector _StandScale;
+	UPROPERTY()
+	FVector _CrouchScale;
 
 	//Aiming Sensitivity
 	UPROPERTY(VisibleAnywhere)

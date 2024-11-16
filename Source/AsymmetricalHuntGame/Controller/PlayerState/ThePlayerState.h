@@ -13,4 +13,5 @@ UCLASS()
 class ASYMMETRICALHUNTGAME_API AThePlayerState : public APlayerState
 {
 	GENERATED_BODY()
+	
 };

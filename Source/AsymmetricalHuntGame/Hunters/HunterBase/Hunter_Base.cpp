@@ -2,6 +2,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/ArrowComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogHunterBase, Display, All);
 
@@ -11,6 +12,9 @@ AHunter_Base::AHunter_Base()
 	_Collision = GetCapsuleComponent();
 	_CharacterMovement = GetCharacterMovement();
 	_PlayerVelocity = _CharacterMovement->GetLastUpdateVelocity();
+
+	_Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	_Mesh->SetupAttachment(_Collision);
 	
 	_Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	_Camera->SetupAttachment(_Collision);
@@ -20,12 +24,22 @@ AHunter_Base::AHunter_Base()
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
 	_CharacterMovement->SetIsReplicated(true);
+
+	_ProjectileSpawn = CreateDefaultSubobject<UArrowComponent>(TEXT("Projectile Spawn"));
+	_ProjectileSpawn->SetupAttachment(_Camera);
+
+	SetReplicates(true);
+	SetReplicateMovement(true);
+	GetCharacterMovement()->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned
 void AHunter_Base::BeginPlay()
 {
 	Super::BeginPlay();
+
+	_CrouchScale = FVector(1.5f, 1.5f, 1.5f);
+	_StandScale = FVector(2.0f, 2.0f, 2.0f);
 
 
 	isAiming = false;
@@ -94,11 +108,15 @@ void AHunter_Base::IAStopSprinting_Implementation_Implementation(const FInputAct
 void AHunter_Base::IACrouch_Implementation_Implementation(const FInputActionInstance& Instance)
 {
 	Crouch();
+	_Mesh->SetWorldScale3D(_CrouchScale);
 }
 
 void AHunter_Base::IAStand_Implementation_Implementation(const FInputActionInstance& Instance)
 {
+	
 	UnCrouch();
+	_Mesh->SetWorldScale3D(_StandScale);
+	
 }
 
 void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstance& Instance)
@@ -115,7 +133,6 @@ void AHunter_Base::IAAim_Implementation_Implementation(const FInputActionInstanc
 {
 	isAiming = true;
 	_Camera->SetFieldOfView(30.0f);
-	UE_LOG(LogHunterBase, Display, TEXT("Aiming"));
 }
 
 void AHunter_Base::IAStopAiming_Implementation_Implementation(const FInputActionInstance& Instance)
@@ -123,56 +140,4 @@ void AHunter_Base::IAStopAiming_Implementation_Implementation(const FInputAction
 	isAiming = false;
 	_Camera->SetFieldOfView(90.0f);
 }
-
-
-/*
-void AHunter_Base::S_Move_Implementation(const FInputActionInstance& Instance)
-{
-	if(Controller != nullptr)
-	{
-		const FVector2d MoveValue = Instance.GetValue().Get<FVector2d>();
-
-		if(MoveValue.Y != 0.f)
-		{
-			AddMovementInput(GetActorForwardVector(), MoveValue.Y);
-		}
-		if(MoveValue.X != 0.f)
-		{
-			AddMovementInput(GetActorRightVector(), MoveValue.X);
-		}
-	}
-}
-
-void AHunter_Base::S_Look_Implementation(const FInputActionInstance& Instance)
-{
-	if(Controller != nullptr)
-	{
-		const FVector2d AxisValue = Instance.GetValue().Get<FVector2d>();
-
-		if(AxisValue.Y != 0.f)
-		{
-			if(isAiming)
-			{
-				AddControllerPitchInput(AxisValue.Y / _AimingSensitivity);
-			}
-			else
-			{
-				AddControllerPitchInput(AxisValue.Y);
-			}
-		}
-		if(AxisValue.X != 0.f)
-		{
-			if(isAiming)
-			{
-				AddControllerYawInput(AxisValue.X / _AimingSensitivity);
-			}
-			else
-			{
-				AddControllerYawInput(AxisValue.X);
-			}
-		}
-	}
-}
-*/
-
 

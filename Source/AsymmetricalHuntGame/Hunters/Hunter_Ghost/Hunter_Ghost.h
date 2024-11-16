@@ -7,12 +7,8 @@
 #include "Hunter_Ghost.generated.h"
 
 class AProjectile_Ghost;
-class UArrowComponent;
-class UCameraComponent;
 
-
-
-UCLASS()
+UCLASS(Abstract)
 class ASYMMETRICALHUNTGAME_API AHunter_Ghost : public AHunter_Base
 {
 	GENERATED_BODY()
@@ -27,12 +23,6 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<AProjectile_Ghost> _Projectile;
-
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UArrowComponent> _ProjectileSpawn;
-
-	UPROPERTY()
-	TObjectPtr<UCameraComponent> _playerCamera;
 
 public:
 

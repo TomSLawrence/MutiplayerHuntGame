@@ -2,23 +2,13 @@
 
 #include "AsymmetricalHuntGame/Controller/ThePlayerController.h"
 #include "Components/ArrowComponent.h"
-#include "Camera/CameraComponent.h"
 #include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Projectile_Ghost.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
 AHunter_Ghost::AHunter_Ghost()
 {
-	_playerCamera = Get_Camera();
-	_ProjectileSpawn = CreateDefaultSubobject<UArrowComponent>(TEXT("Projectile Spawn"));
-	_ProjectileSpawn->SetupAttachment(_playerCamera);
-
-	SetReplicates(true);
-	SetReplicateMovement(true);
-	GetCharacterMovement()->SetIsReplicated(true);
-
+	
 }
 
 // Called when the game starts or when spawned

@@ -6,6 +6,7 @@
 #include "GameFramework/GameMode.h"
 #include "TheGameMode.generated.h"
 
+class ASurvivor_Craig;
 class ACharacter;
 class AHunter_Ghost;
 class AThePlayerController;
@@ -30,11 +31,9 @@ protected:
 
 	//Hunter Subclasses
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AHunter_Ghost> TheHunterCharacter;
-
-
-
-
+	TSubclassOf<AHunter_Ghost> _TheHunterCharacter;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<ASurvivor_Craig> _TheSurvivorCharacter;
 	
 	virtual void OnPostLogin(AController* NewPlayer) override;
 

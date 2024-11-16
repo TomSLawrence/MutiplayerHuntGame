@@ -21,6 +21,16 @@ void ASurvivor_Craig::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+void ASurvivor_Craig::IACharacterMove(FVector _InputAxis)
+{
+	Super::IACharacterMove(_InputAxis);
+}
+
+void ASurvivor_Craig::IACharacterLook(FVector _InputAxis)
+{
+	Super::IACharacterLook(_InputAxis);
+}
+
 void ASurvivor_Craig::IAAction_Implementation(const FInputActionInstance& Instance)
 {
 	Super::IAAction_Implementation(Instance);

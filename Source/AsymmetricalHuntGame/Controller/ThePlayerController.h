@@ -28,13 +28,10 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-	//Survivor Subclasses
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<ASurvivor_Craig> TheSurvivorCharacter;
-
 	UPROPERTY()
 	TObjectPtr<ACharacter> _PlayerCharacterPC;
-	
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 	
@@ -100,5 +97,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void PC_SpawnCharacters(ATheGameMode* _GameModeRef);
+	UFUNCTION(BlueprintImplementableEvent)
+	void SpawnCharacters();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool isHunter;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool isSurvivor;
 };
 

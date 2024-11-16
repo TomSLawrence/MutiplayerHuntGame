@@ -2,13 +2,15 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/Character.h"
-#include "AsymmetricalHuntGame/Survivors/Survivor_Craig/Survivor_Craig.h"
 #include "AsymmetricalHuntGame/GameMode/TheGameMode.h"
 #include "AsymmetricalHuntGame/Hunters/HunterBase/Hunter_Base.h"
 #include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Hunter_Ghost.h"
+#include "AsymmetricalHuntGame/Survivors/SurvivorBase/Survivor_Base.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogThePlayerController, Display, All);
+
 
 void AThePlayerController::SetupInputComponent()
 {
@@ -30,13 +32,43 @@ void AThePlayerController::SetupInputComponent()
 	}
 }
 
+void AThePlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
 void AThePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+
+	if(this->IsLocalController() && HasAuthority())
 	{
-		Subsystem->ClearAllMappings();
-		Subsystem->AddMappingContext(_HunterMappingContext,0);
+		isHunter = true;
+		isSurvivor = false;
+	}
+	else if(this->IsLocalController() && !HasAuthority())
+	{
+		isSurvivor = true;
+		isHunter = false;
+	}
+
+	SpawnCharacters();
+	
+	if(isHunter)
+	{
+		if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(_HunterMappingContext,0);
+		}
+	}
+	else if(isSurvivor)
+	{
+		if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(_SurvivorMappingContext,0);
+		}
 	}
 }
 
@@ -53,16 +85,15 @@ void AThePlayerController::PC_SpawnCharacters(ATheGameMode* _GameModeRef)
 
 void AThePlayerController::MoveInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
-		AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
+		AHunter_Base* _PossessedCharacter = Cast<AHunter_Base>(GetCharacter());
 
 		if(_PossessedCharacter != nullptr)
 		{
 			const FVector MoveValue = Instance.GetValue().Get<FVector>();
 			_PossessedCharacter->IACharacterMove(MoveValue);
 		}
-	
 	}
 	else
 	{
@@ -73,9 +104,9 @@ void AThePlayerController::MoveInput(const FInputActionInstance& Instance)
 
 void AThePlayerController::LookInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
-		AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
+		AHunter_Base* _PossessedCharacter = Cast<AHunter_Base>(GetCharacter());
 
 		if(_PossessedCharacter != nullptr)
 		{
@@ -92,7 +123,7 @@ void AThePlayerController::LookInput(const FInputActionInstance& Instance)
 
 void AThePlayerController::ActionInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IAAction(GetCharacter(), Instance);
 	}
@@ -104,7 +135,7 @@ void AThePlayerController::ActionInput(const FInputActionInstance& Instance)
 
 void AThePlayerController::SprintInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IASprint(GetCharacter(), Instance);
 	}
@@ -116,7 +147,7 @@ void AThePlayerController::SprintInput(const FInputActionInstance& Instance)
 
 void AThePlayerController::StopSprintingInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IAStopSprinting(GetCharacter(), Instance);
 	}
@@ -128,7 +159,7 @@ void AThePlayerController::StopSprintingInput(const FInputActionInstance& Instan
 
 void AThePlayerController::CrouchInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IACrouch(GetCharacter(), Instance);
 	}
@@ -140,7 +171,7 @@ void AThePlayerController::CrouchInput(const FInputActionInstance& Instance)
 
 void AThePlayerController::StandInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IAStand(GetCharacter(), Instance);
 	}
@@ -152,7 +183,7 @@ void AThePlayerController::StandInput(const FInputActionInstance& Instance)
 
 void AThePlayerController::JumpInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IAJump(GetCharacter(), Instance);
 	}
@@ -164,7 +195,7 @@ void AThePlayerController::JumpInput(const FInputActionInstance& Instance)
 
 void AThePlayerController::ShootInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IAShoot(GetCharacter(), Instance);
 	}
@@ -176,7 +207,7 @@ void AThePlayerController::ShootInput(const FInputActionInstance& Instance)
 
 void AThePlayerController::AimInput(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IAAim(GetCharacter(), Instance);
 	}
@@ -188,7 +219,7 @@ void AThePlayerController::AimInput(const FInputActionInstance& Instance)
 
 void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
+	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IAStopAiming(GetCharacter(), Instance);
 	}
@@ -207,7 +238,7 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 
 void AThePlayerController::S_MoveInput_Implementation(const FVector _PlayerInput)
 {
-	AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
+	ASurvivor_Base* _PossessedCharacter = Cast<ASurvivor_Base>(GetCharacter());
 
 	if(_PossessedCharacter != nullptr)
 	{
@@ -218,7 +249,7 @@ void AThePlayerController::S_MoveInput_Implementation(const FVector _PlayerInput
 
 void AThePlayerController::S_LookInput_Implementation(const FVector _PlayerInput)
 {
-	AHunter_Ghost* _PossessedCharacter = Cast<AHunter_Ghost>(GetCharacter());
+	ASurvivor_Base* _PossessedCharacter = Cast<ASurvivor_Base>(GetCharacter());
 
 	if(_PossessedCharacter != nullptr)
 	{

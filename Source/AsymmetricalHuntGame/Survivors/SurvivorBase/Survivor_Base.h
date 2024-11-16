@@ -17,13 +17,23 @@ class ASYMMETRICALHUNTGAME_API ASurvivor_Base : public ACharacter, public IIAInt
 public:
 	// Sets default values for this pawn's properties
 	ASurvivor_Base();
-
-
+	
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void IACharacterMove(FVector _InputAxis);
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void IACharacterLook(FVector _InputAxis);
+	
+	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
 	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
 	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
 	
 protected:
@@ -47,6 +57,11 @@ protected:
 	float _WalkSpeed;
 	UPROPERTY(EditAnywhere)
 	float _CrouchSpeed;
+
+	UPROPERTY()
+	FVector _StandScale;
+	UPROPERTY()
+	FVector _CrouchScale;
 
 	//Player Velocity
 	UPROPERTY()
