@@ -1,10 +1,7 @@
 ﻿#include "Hunter_Base.h"
-
-#include "AsymmetricalHuntGame/Controller/ThePlayerController.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogHunterBase, Display, All);
 
@@ -15,9 +12,6 @@ AHunter_Base::AHunter_Base()
 	_CharacterMovement = GetCharacterMovement();
 	_PlayerVelocity = _CharacterMovement->GetLastUpdateVelocity();
 	
-	_Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	_Mesh->SetupAttachment(_Collision);
-	
 	_Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	_Camera->SetupAttachment(_Collision);
 	_Camera->SetRelativeLocation(FVector(-10.0f, 0.0f, 60.0f));
@@ -26,21 +20,14 @@ AHunter_Base::AHunter_Base()
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
 	_CharacterMovement->SetIsReplicated(true);
-
-
-	_CrouchHeight = (FVector(1.0f, 1.0f, 0.5f));
-	_StandHeight = (FVector(2.0f, 2.0f, 2.0f));
 }
-
-
 
 // Called when the game starts or when spawned
 void AHunter_Base::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	_Collision->OnComponentBeginOverlap.AddDynamic(this, &AHunter_Base::OnOverlapBegin);
-	
+
+
 	isAiming = false;
 }
 
@@ -56,7 +43,6 @@ void AHunter_Base::IACharacterMove_Implementation(FVector _InputAxis)
 		{
 			AddMovementInput(GetActorRightVector(), _InputAxis.X);
 		}
-			
 	}
 }
 
@@ -113,7 +99,6 @@ void AHunter_Base::IACrouch_Implementation_Implementation(const FInputActionInst
 void AHunter_Base::IAStand_Implementation_Implementation(const FInputActionInstance& Instance)
 {
 	UnCrouch();
-	
 }
 
 void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstance& Instance)
@@ -130,6 +115,7 @@ void AHunter_Base::IAAim_Implementation_Implementation(const FInputActionInstanc
 {
 	isAiming = true;
 	_Camera->SetFieldOfView(30.0f);
+	UE_LOG(LogHunterBase, Display, TEXT("Aiming"));
 }
 
 void AHunter_Base::IAStopAiming_Implementation_Implementation(const FInputActionInstance& Instance)
@@ -137,8 +123,56 @@ void AHunter_Base::IAStopAiming_Implementation_Implementation(const FInputAction
 	isAiming = false;
 	_Camera->SetFieldOfView(90.0f);
 }
-void AHunter_Base::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+
+
+/*
+void AHunter_Base::S_Move_Implementation(const FInputActionInstance& Instance)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit!"));
+	if(Controller != nullptr)
+	{
+		const FVector2d MoveValue = Instance.GetValue().Get<FVector2d>();
+
+		if(MoveValue.Y != 0.f)
+		{
+			AddMovementInput(GetActorForwardVector(), MoveValue.Y);
+		}
+		if(MoveValue.X != 0.f)
+		{
+			AddMovementInput(GetActorRightVector(), MoveValue.X);
+		}
+	}
 }
+
+void AHunter_Base::S_Look_Implementation(const FInputActionInstance& Instance)
+{
+	if(Controller != nullptr)
+	{
+		const FVector2d AxisValue = Instance.GetValue().Get<FVector2d>();
+
+		if(AxisValue.Y != 0.f)
+		{
+			if(isAiming)
+			{
+				AddControllerPitchInput(AxisValue.Y / _AimingSensitivity);
+			}
+			else
+			{
+				AddControllerPitchInput(AxisValue.Y);
+			}
+		}
+		if(AxisValue.X != 0.f)
+		{
+			if(isAiming)
+			{
+				AddControllerYawInput(AxisValue.X / _AimingSensitivity);
+			}
+			else
+			{
+				AddControllerYawInput(AxisValue.X);
+			}
+		}
+	}
+}
+*/
+
+

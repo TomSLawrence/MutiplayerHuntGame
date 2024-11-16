@@ -7,7 +7,6 @@
 #include "AsymmetricalHuntGame/Controller/Interfaces/IAInterface.h"
 #include "Hunter_Base.generated.h"
 
-class AThePlayerController;
 class UCapsuleComponent;
 class UCameraComponent;
 class UCharacterMovementComponent;
@@ -46,11 +45,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStopAiming_Implementation(const FInputActionInstance& Instance) override;
 
-	
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
 
 	//Player Components
 	UPROPERTY(EditAnywhere)
@@ -75,11 +69,6 @@ protected:
 	float _WalkSpeed;
 	UPROPERTY(EditAnywhere)
 	float _CrouchSpeed;
-	UPROPERTY(EditAnywhere)
-	
-	FVector _CrouchHeight;
-	UPROPERTY(EditAnywhere)
-	FVector _StandHeight;
 
 	//Aiming Sensitivity
 	UPROPERTY(VisibleAnywhere)

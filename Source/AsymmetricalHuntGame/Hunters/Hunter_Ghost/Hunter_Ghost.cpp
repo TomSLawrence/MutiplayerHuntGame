@@ -55,20 +55,11 @@ void AHunter_Ghost::IAStopSprinting_Implementation(const FInputActionInstance& I
 void AHunter_Ghost::IACrouch_Implementation(const FInputActionInstance& Instance)
 {
 	Super::IACrouch_Implementation(Instance);
-	
-	if(_Mesh)
-	{
-		_Mesh->SetRelativeScale3D(_CrouchHeight);
-	}
 }
 
 void AHunter_Ghost::IAStand_Implementation(const FInputActionInstance& Instance)
 {
 	Super::IAStand_Implementation(Instance);
-	if(_Mesh)
-	{
-		_Mesh->SetRelativeScale3D(_StandHeight);
-	}
 }
 
 void AHunter_Ghost::IAJump_Implementation(const FInputActionInstance& Instance)

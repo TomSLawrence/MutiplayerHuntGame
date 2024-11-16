@@ -34,7 +34,6 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<ACharacter> _PlayerCharacterPC;
-
 	
 
 public:
