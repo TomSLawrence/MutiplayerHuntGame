@@ -3,6 +3,7 @@
 
 #include "Projectile_Base.h"
 
+#include "AsymmetricalHuntGame/Survivors/SurvivorBase/Survivor_Base.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
@@ -19,7 +20,10 @@ AProjectile_Base::AProjectile_Base()
 	_Collision->SetupAttachment(_Mesh);
 	_ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement"));
 	
+	_ProjectileMovement->InitialSpeed = 15000;
+	_ProjectileMovement->MaxSpeed = 15000;
 }
+
 
 // Called when the game starts or when spawned
 void AProjectile_Base::BeginPlay()
@@ -29,21 +33,24 @@ void AProjectile_Base::BeginPlay()
 	if(HasAuthority())
 	{
 		SetReplicates(true);
+		_Collision->OnComponentBeginOverlap.AddDynamic(this, &AProjectile_Base::OnCollisionOverlap);
 	}
 
-	_ProjectileMovement->InitialSpeed = 10000;
-	_ProjectileMovement->MaxSpeed = 10000;
 	
 }
 
-void AProjectile_Base::ApplyProjectileDamage()
+void AProjectile_Base::OnCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	OnApplyDamage.Broadcast();
+	ASurvivor_Base* _HitSurvivor = Cast<ASurvivor_Base>(OtherActor);
+	S_OnCollision(_HitSurvivor);
+	
 }
 
-// Called every frame
-void AProjectile_Base::Tick(float DeltaTime)
+void AProjectile_Base::S_OnCollision_Implementation(ASurvivor_Base* _HitSurvivor)
 {
-	Super::Tick(DeltaTime);
+	_HitSurvivor->S_SurvivorDamage();
+	Destroy();
 }
+
 

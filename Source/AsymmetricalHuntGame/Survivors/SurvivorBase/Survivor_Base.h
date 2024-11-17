@@ -35,6 +35,12 @@ public:
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
+
+	
+	UFUNCTION(Server, Reliable)
+	void S_SurvivorDamage();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_SurvivorDamage();
 	
 protected:
 	// Called when the game starts or when spawned
@@ -57,6 +63,9 @@ protected:
 	float _WalkSpeed;
 	UPROPERTY(EditAnywhere)
 	float _CrouchSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int _survivorHealth;
 
 	UPROPERTY()
 	FVector _StandScale;

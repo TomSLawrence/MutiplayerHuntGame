@@ -50,22 +50,21 @@ void ATheGameMode::GM_SpawnCharacters_Implementation(AThePlayerController* _Play
 	{
 		if(_PlayerController != nullptr)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Cyan, FString::Printf(TEXT("isHunter: %s, isSurvivor: %s"), _PlayerController->isHunter ? TEXT("true") : TEXT("false"), _PlayerController->isSurvivor ? TEXT("true") : TEXT("false")));
-			
-			if(_PlayerController->isHunter && !_PlayerController->isSurvivor)
-			{
-				ACharacter* _PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(_TheHunterCharacter, CharacterSpawnLocation, CharacterSpawnRotation, SpawnParams);
-				_PlayerController->UnPossess();
-				_PlayerController->Possess(_PlayerCharacter);
+			if(_PlayerController->HasAuthority())
 				
-			}
-			else if(_PlayerController->isSurvivor && !_PlayerController->isHunter)
-			{
-				ACharacter* _PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(_TheSurvivorCharacter, CharacterSpawnLocation, CharacterSpawnRotation, SpawnParams);
-				_PlayerController->UnPossess();
-				_PlayerController->Possess(_PlayerCharacter);
-				GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Possessed Survivor!"));
-			}
+				if(_PlayerController->isHunter && !_PlayerController->isSurvivor)
+				{
+					ACharacter* _PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(_TheHunterCharacter, CharacterSpawnLocation, CharacterSpawnRotation, SpawnParams);
+					_PlayerController->UnPossess();
+					_PlayerController->Possess(_PlayerCharacter);
+				}
+				else if(_PlayerController->isSurvivor && !_PlayerController->isHunter)
+				{
+					GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit!"));
+					ACharacter* _PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(_TheSurvivorCharacter, CharacterSpawnLocation, CharacterSpawnRotation, SpawnParams);
+					_PlayerController->UnPossess();
+					_PlayerController->Possess(_PlayerCharacter);
+				}
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿#include "Survivor_Base.h"
+
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
@@ -22,8 +23,12 @@ ASurvivor_Base::ASurvivor_Base()
 	
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
+
+	SetReplicates(true);
+	SetReplicateMovement(true);
 	_CharacterMovement->SetIsReplicated(true);
 
+	_survivorHealth = 2;
 
 }
 
@@ -35,9 +40,10 @@ void ASurvivor_Base::BeginPlay()
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	_StandScale = FVector(2.0f, 2.0f, 2.0f);
 	_CrouchScale = FVector(1.5f, 1.5f, 1.5f);
-	
+
 }
 
+//Movement Functions
 
 void ASurvivor_Base::IACharacterMove_Implementation(FVector _InputAxis)
 {
@@ -46,7 +52,6 @@ void ASurvivor_Base::IACharacterMove_Implementation(FVector _InputAxis)
 		if(_InputAxis.Y != 0.0f)
 		{
 			AddMovementInput(GetActorForwardVector(), _InputAxis.Y);
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Moving!"));
 		}
 		if(_InputAxis.X != 0.0f)
 		{
@@ -103,4 +108,21 @@ void ASurvivor_Base::IAJump_Implementation_Implementation(const FInputActionInst
 	Jump();
 }
 
+
+//Character Functions
+void ASurvivor_Base::S_SurvivorDamage_Implementation()
+{
+	Multi_SurvivorDamage();
+}
+
+void ASurvivor_Base::Multi_SurvivorDamage_Implementation()
+{
+	_survivorHealth--;
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit!"));
+	
+	if(_survivorHealth <= 0)
+	{
+		Destroy();
+	}
+}
 

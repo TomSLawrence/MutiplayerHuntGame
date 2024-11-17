@@ -45,13 +45,14 @@ void AThePlayerController::BeginPlay()
 	{
 		isHunter = true;
 		isSurvivor = false;
+		
 	}
 	else if(this->IsLocalController() && !HasAuthority())
 	{
 		isSurvivor = true;
 		isHunter = false;
 	}
-
+	
 	SpawnCharacters();
 	
 	if(isHunter)
@@ -62,12 +63,13 @@ void AThePlayerController::BeginPlay()
 			Subsystem->AddMappingContext(_HunterMappingContext,0);
 		}
 	}
-	else if(isSurvivor)
+	if(isSurvivor)
 	{
 		if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
 			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(_SurvivorMappingContext,0);
+			
 		}
 	}
 }
@@ -79,7 +81,6 @@ void AThePlayerController::PC_SpawnCharacters(ATheGameMode* _GameModeRef)
 		_GameModeRef->GM_SpawnCharacters(this);
 	}
 }
-
 
 //Local Player Controller Inputs
 

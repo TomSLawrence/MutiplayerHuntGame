@@ -104,5 +104,7 @@ public:
 	bool isHunter;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool isSurvivor;
+
+	
 };
 

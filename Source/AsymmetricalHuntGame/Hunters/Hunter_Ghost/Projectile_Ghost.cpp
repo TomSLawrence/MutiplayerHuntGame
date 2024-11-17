@@ -7,8 +7,7 @@
 // Sets default values
 AProjectile_Ghost::AProjectile_Ghost()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	
 }
 
 // Called when the game starts or when spawned
@@ -18,9 +17,14 @@ void AProjectile_Ghost::BeginPlay()
 	
 }
 
-// Called every frame
-void AProjectile_Ghost::Tick(float DeltaTime)
+void AProjectile_Ghost::OnCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Super::Tick(DeltaTime);
+	Super::OnCollisionOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+}
+
+void AProjectile_Ghost::S_OnCollision(ASurvivor_Base* _HitSurvivor)
+{
+	Super::S_OnCollision(_HitSurvivor);
 }
 

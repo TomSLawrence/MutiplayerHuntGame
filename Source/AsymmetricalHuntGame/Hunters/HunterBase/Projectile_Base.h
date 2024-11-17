@@ -8,8 +8,7 @@
 
 class UProjectileMovementComponent;
 class USphereComponent;
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FApplyDamage);
+class ASurvivor_Base;
 
 UCLASS(Abstract)
 class ASYMMETRICALHUNTGAME_API AProjectile_Base : public AActor
@@ -30,19 +29,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UProjectileMovementComponent> _ProjectileMovement;
 
+
+	UFUNCTION(BlueprintCallable)
+	virtual void OnCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(Server, Reliable)
+	virtual void S_OnCollision(ASurvivor_Base* _HitSurvivor);
 	
-
-	UPROPERTY()
-	FApplyDamage OnApplyDamage;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
 
-	UFUNCTION()
-	void ApplyProjectileDamage();
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 };

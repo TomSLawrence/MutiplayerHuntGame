@@ -7,6 +7,7 @@
 #include "AsymmetricalHuntGame/Controller/Interfaces/IAInterface.h"
 #include "Hunter_Base.generated.h"
 
+class AProjectile_Base;
 class UCapsuleComponent;
 class UCameraComponent;
 class UArrowComponent;
@@ -48,7 +49,7 @@ public:
 
 	//Player Components
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UStaticMeshComponent> _Mesh;
+	TObjectPtr<UStaticMeshComponent> _CharacterMesh;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> _WeaponMesh;
 	UPROPERTY(EditAnywhere)
@@ -72,11 +73,18 @@ protected:
 	float _WalkSpeed;
 	UPROPERTY(EditAnywhere)
 	float _CrouchSpeed;
+	UPROPERTY(EditAnywhere)
+	float _AimingSpeed;
 
 	UPROPERTY()
 	FVector _StandScale;
 	UPROPERTY()
 	FVector _CrouchScale;
+
+	UPROPERTY()
+	FVector _RaisedWeaponLocation;
+	UPROPERTY()
+	FVector _LoweredWeaponLocation;
 
 	//Aiming Sensitivity
 	UPROPERTY(VisibleAnywhere)
@@ -87,6 +95,11 @@ protected:
 	//Player Velocity
 	UPROPERTY()
 	FVector _PlayerVelocity;
+
+	UPROPERTY()
+	TObjectPtr<AActor> _HitSurvivor;
+	UPROPERTY()
+	float _TraceDistance;
 
 
 public:

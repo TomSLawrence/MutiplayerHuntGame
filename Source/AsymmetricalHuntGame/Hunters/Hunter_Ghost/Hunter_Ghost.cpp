@@ -59,11 +59,14 @@ void AHunter_Ghost::IAJump_Implementation(const FInputActionInstance& Instance)
 
 void AHunter_Ghost::IAShoot_Implementation(const FInputActionInstance& Instance)
 {
-	FActorSpawnParameters _ProjectileSpawnParams;
-	_ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	_ProjectileSpawnParams.Owner = GetOwner();
-	_ProjectileSpawnParams.Instigator = GetInstigator();
-	GetWorld()->SpawnActor(_Projectile, &_ProjectileSpawn->GetComponentTransform(), _ProjectileSpawnParams);
+	if(HasAuthority())
+	{
+		FActorSpawnParameters _ProjectileSpawnParams;
+		_ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		_ProjectileSpawnParams.Owner = GetOwner();
+		_ProjectileSpawnParams.Instigator = GetInstigator();
+		GetWorld()->SpawnActor(_Projectile, &_ProjectileSpawn->GetComponentTransform(), _ProjectileSpawnParams);
+	}
 }
 
 void AHunter_Ghost::IAAim_Implementation(const FInputActionInstance& Instance)
