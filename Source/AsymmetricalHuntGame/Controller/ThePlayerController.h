@@ -63,6 +63,7 @@ public:
 	void MoveInput(const FInputActionInstance& Instance);
 	void LookInput(const FInputActionInstance& Instance);
 	void ActionInput(const FInputActionInstance& Instance);
+	void StopActionInput(const FInputActionInstance& Instance);
 	void SprintInput(const FInputActionInstance& Instance);
 	void StopSprintingInput(const FInputActionInstance& Instance);
 	void CrouchInput(const FInputActionInstance& Instance);
@@ -78,6 +79,8 @@ public:
 	void S_LookInput(const FVector _PlayerInput);
 	UFUNCTION(Server, Reliable, WithValidation)
 	void S_ActionInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_StopActionInput(const FInputActionInstance& Instance);
 	UFUNCTION(Server, Reliable, WithValidation)
 	void S_SprintInput(const FInputActionInstance& Instance);
 	UFUNCTION(Server, Reliable, WithValidation)

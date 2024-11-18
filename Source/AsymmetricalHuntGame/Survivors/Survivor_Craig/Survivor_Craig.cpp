@@ -36,6 +36,11 @@ void ASurvivor_Craig::IAAction_Implementation(const FInputActionInstance& Instan
 	Super::IAAction_Implementation(Instance);
 }
 
+void ASurvivor_Craig::IAStopAction_Implementation(const FInputActionInstance& Instance)
+{
+	Super::IAStopAction_Implementation(Instance);
+}
+
 void ASurvivor_Craig::IASprint_Implementation(const FInputActionInstance& Instance)
 {
 	Super::IASprint_Implementation(Instance);
@@ -61,5 +66,70 @@ void ASurvivor_Craig::IAJump_Implementation(const FInputActionInstance& Instance
 	Super::IAJump_Implementation(Instance);
 }
 
+
+
+//Server functions
+void ASurvivor_Craig::S_BaseSurvivorDamage()
+{
+	Super::S_BaseSurvivorDamage();
+}
+
+void ASurvivor_Craig::Multi_BaseSurvivorDamage()
+{
+	Super::Multi_BaseSurvivorDamage();
+}
+
+void ASurvivor_Craig::S_HealingSurvivorAction()
+{
+	Super::S_HealingSurvivorAction();
+}
+
+void ASurvivor_Craig::Multi_HealingSurvivorAction()
+{
+	Super::Multi_HealingSurvivorAction();
+}
+
+
+
+
+
+void ASurvivor_Craig::S_HealSurvivor()
+{
+	Super::S_HealSurvivor();
+}
+
+void ASurvivor_Craig::S_StopHealingSurvivor()
+{
+	Super::S_StopHealingSurvivor();
+}
+
+void ASurvivor_Craig::Multi_StopHealingSurvivor()
+{
+	Super::Multi_StopHealingSurvivor();
+}
+
+void ASurvivor_Craig::Multi_HealSurvivor()
+{
+	Super::Multi_HealSurvivor();
+}
+
+void ASurvivor_Craig::OnActionCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	Super::OnActionCollisionOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep,
+	                                SweepResult);
+}
+
+void ASurvivor_Craig::OnActionCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	Super::OnActionCollisionEndOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+}
+
+void ASurvivor_Craig::OnHeadCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	Super::OnHeadCollisionOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+}
 
 

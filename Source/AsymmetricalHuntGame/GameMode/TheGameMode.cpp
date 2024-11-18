@@ -60,7 +60,6 @@ void ATheGameMode::GM_SpawnCharacters_Implementation(AThePlayerController* _Play
 				}
 				else if(_PlayerController->isSurvivor && !_PlayerController->isHunter)
 				{
-					GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit!"));
 					ACharacter* _PlayerCharacter = GetWorld()->SpawnActor<ACharacter>(_TheSurvivorCharacter, CharacterSpawnLocation, CharacterSpawnRotation, SpawnParams);
 					_PlayerController->UnPossess();
 					_PlayerController->Possess(_PlayerCharacter);

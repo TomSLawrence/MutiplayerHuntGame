@@ -49,7 +49,7 @@ void AProjectile_Base::OnCollisionOverlap(UPrimitiveComponent* OverlappedCompone
 
 void AProjectile_Base::S_OnCollision_Implementation(ASurvivor_Base* _HitSurvivor)
 {
-	_HitSurvivor->S_SurvivorDamage();
+	_HitSurvivor->S_BaseSurvivorDamage();
 	Destroy();
 }
 

@@ -4,10 +4,7 @@
 #include "GameFramework/Character.h"
 #include "AsymmetricalHuntGame/GameMode/TheGameMode.h"
 #include "AsymmetricalHuntGame/Hunters/HunterBase/Hunter_Base.h"
-#include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Hunter_Ghost.h"
 #include "AsymmetricalHuntGame/Survivors/SurvivorBase/Survivor_Base.h"
-#include "Kismet/GameplayStatics.h"
-#include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogThePlayerController, Display, All);
 
@@ -21,6 +18,7 @@ void AThePlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(_Move, ETriggerEvent::Triggered, this, &AThePlayerController::MoveInput);
 		EnhancedInputComponent->BindAction(_Look, ETriggerEvent::Triggered, this, &AThePlayerController::LookInput);
 		EnhancedInputComponent->BindAction(_Action, ETriggerEvent::Triggered, this, &AThePlayerController::ActionInput);
+		EnhancedInputComponent->BindAction(_Action, ETriggerEvent::Completed, this, &AThePlayerController::StopActionInput);
 		EnhancedInputComponent->BindAction(_Jump, ETriggerEvent::Triggered, this, &AThePlayerController::JumpInput);
 		EnhancedInputComponent->BindAction(_Sprint, ETriggerEvent::Triggered, this, &AThePlayerController::SprintInput);
 		EnhancedInputComponent->BindAction(_Sprint, ETriggerEvent::Completed, this, &AThePlayerController::StopSprintingInput);
@@ -134,6 +132,18 @@ void AThePlayerController::ActionInput(const FInputActionInstance& Instance)
 	}
 }
 
+void AThePlayerController::StopActionInput(const FInputActionInstance& Instance)
+{
+	if(this->IsLocalController() && HasAuthority())
+	{
+		Execute_IAStopAction(GetCharacter(), Instance);
+	}
+	else
+	{
+		S_StopActionInput(Instance);
+	}
+}
+
 void AThePlayerController::SprintInput(const FInputActionInstance& Instance)
 {
 	if(this->IsLocalController() && HasAuthority())
@@ -231,10 +241,6 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 }
 
 
-
-
-
-
 //Server Functions
 
 void AThePlayerController::S_MoveInput_Implementation(const FVector _PlayerInput)
@@ -261,6 +267,11 @@ void AThePlayerController::S_LookInput_Implementation(const FVector _PlayerInput
 void AThePlayerController::S_ActionInput_Implementation(const FInputActionInstance& Instance)
 {
 	Execute_IAAction(GetCharacter(), Instance);
+}
+
+void AThePlayerController::S_StopActionInput_Implementation(const FInputActionInstance& Instance)
+{
+	Execute_IAStopAction(GetCharacter(), Instance);
 }
 
 void AThePlayerController::S_SprintInput_Implementation(const FInputActionInstance& Instance)
@@ -319,6 +330,11 @@ bool AThePlayerController::S_LookInput_Validate(const FVector _PlayerInput)
 }
 
 bool AThePlayerController::S_ActionInput_Validate(const FInputActionInstance& Instance)
+{
+	return true;
+}
+
+bool AThePlayerController::S_StopActionInput_Validate(const FInputActionInstance& Instance)
 {
 	return true;
 }

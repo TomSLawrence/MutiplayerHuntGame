@@ -5,6 +5,8 @@
 #include "GameFramework/Character.h"
 #include "Survivor_Base.generated.h"
 
+class AProjectile_Base;
+class USphereComponent;
 class UCapsuleComponent;
 class UCameraComponent;
 class UCharacterMovementComponent;
@@ -17,14 +19,18 @@ class ASYMMETRICALHUNTGAME_API ASurvivor_Base : public ACharacter, public IIAInt
 public:
 	// Sets default values for this pawn's properties
 	ASurvivor_Base();
-	
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	//Survivor Movement
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IACharacterMove(FVector _InputAxis);
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IACharacterLook(FVector _InputAxis);
-	
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void IAStopAction_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
@@ -36,11 +42,42 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
 
+	//Server Functions
+	UFUNCTION(Server, Reliable)
+	virtual void S_BaseSurvivorDamage();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_BaseSurvivorDamage();
+	UFUNCTION(Server, Reliable)
+	virtual void S_HeadSurvivorDamage(AProjectile_Base* _Projectile);
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_HeadSurvivorDamage(AProjectile_Base* _Projectile);
 	
 	UFUNCTION(Server, Reliable)
-	void S_SurvivorDamage();
+	virtual void S_HealingSurvivorAction();
 	UFUNCTION(NetMulticast, Reliable)
-	void Multi_SurvivorDamage();
+	virtual void Multi_HealingSurvivorAction();
+	UFUNCTION(Server, Reliable)
+	virtual void S_StopHealingSurvivor();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_StopHealingSurvivor();
+
+	//Local Functions
+	UFUNCTION(Server, Reliable)
+	virtual void S_HealSurvivor();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_HealSurvivor();
+
+	UFUNCTION()
+	virtual void OnActionCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void OnActionCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	
+	UFUNCTION()
+	virtual void OnHeadCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 protected:
 	// Called when the game starts or when spawned
@@ -50,7 +87,19 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> _Mesh;
 	UPROPERTY(EditAnywhere)
+	TObjectPtr<UStaticMeshComponent> _HeadMesh;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UStaticMeshComponent> _EyeMesh1;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UStaticMeshComponent> _EyeMesh2;
+	UPROPERTY(EditAnywhere)
+	
 	TObjectPtr<UCapsuleComponent> _Collision;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCapsuleComponent> _ActionCollision;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USphereComponent> _HeadCollision;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> _Camera;
 	UPROPERTY(EditAnywhere)
@@ -64,8 +113,19 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float _CrouchSpeed;
 
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	int _SurvivorHealth;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int _survivorHealth;
+	int _SurvivorMaxHealth;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	float _HealTime;
+	
+	UPROPERTY()
+	FTimerHandle FHealHandle;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	bool canHeal;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ASurvivor_Base> _OverlappedSurvivor;
 
 	UPROPERTY()
 	FVector _StandScale;

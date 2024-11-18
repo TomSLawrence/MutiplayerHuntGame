@@ -29,7 +29,6 @@ public:
 	//Player Movement/Looking
 	virtual void IACharacterMove(FVector _InputAxis) override;
 	virtual void IACharacterLook(FVector _InputAxis) override;
-
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;
