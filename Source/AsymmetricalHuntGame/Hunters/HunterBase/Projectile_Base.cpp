@@ -3,6 +3,7 @@
 
 #include "Projectile_Base.h"
 
+#include "AsymmetricalHuntGame/Map/Assets/MyTree.h"
 #include "AsymmetricalHuntGame/Survivors/SurvivorBase/Survivor_Base.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -22,6 +23,8 @@ AProjectile_Base::AProjectile_Base()
 	
 	_ProjectileMovement->InitialSpeed = 15000;
 	_ProjectileMovement->MaxSpeed = 15000;
+
+	_hasOverlapped = false;
 }
 
 
@@ -33,24 +36,36 @@ void AProjectile_Base::BeginPlay()
 	if(HasAuthority())
 	{
 		SetReplicates(true);
+		SetReplicateMovement(true);
 		_Collision->OnComponentBeginOverlap.AddDynamic(this, &AProjectile_Base::OnCollisionOverlap);
 	}
 
 	
 }
 
-void AProjectile_Base::OnCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AProjectile_Base::OnCollisionOverlap_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	ASurvivor_Base* _HitSurvivor = Cast<ASurvivor_Base>(OtherActor);
-	S_OnCollision(_HitSurvivor);
+	if(!_hasOverlapped)
+	{
+		
+		if(ASurvivor_Base* _HitSurvivor = Cast<ASurvivor_Base>(OtherActor))
+		{
+			_HitSurvivor->S_BaseSurvivorDamage();
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit Survivor!"));
+			Destroy();
+		}
+		else if(AMyTree* _HitTree = Cast<AMyTree>(OtherActor))
+		{
+			if(_HitTree)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit Tree!"));
+				Destroy();
+			}
+		}
+		_hasOverlapped = true;
+	}
 	
-}
-
-void AProjectile_Base::S_OnCollision_Implementation(ASurvivor_Base* _HitSurvivor)
-{
-	_HitSurvivor->S_BaseSurvivorDamage();
-	Destroy();
 }
 
 

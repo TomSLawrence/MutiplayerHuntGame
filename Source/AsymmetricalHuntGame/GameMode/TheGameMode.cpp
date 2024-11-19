@@ -7,8 +7,9 @@
 #include "AsymmetricalHuntGame/Controller/PlayerState/ThePlayerState.h"
 #include "GameFramework/Character.h"
 #include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Hunter_Ghost.h"
+#include "AsymmetricalHuntGame/Map/Assets/MyBush.h"
+#include "AsymmetricalHuntGame/Map/Assets/MyTree.h"
 #include "AsymmetricalHuntGame/Survivors/Survivor_Craig/Survivor_Craig.h"
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTheGameMode, Display, All);
@@ -18,6 +19,9 @@ ATheGameMode::ATheGameMode()
 	PlayerControllerClass = AThePlayerController::StaticClass();
 	GameStateClass = ATheGameState::StaticClass();
 	PlayerStateClass = AThePlayerState::StaticClass();
+
+	_MaxTreeNumber = 1000;
+	_MaxBushNumber = 500;
 }
 
 void ATheGameMode::OnPostLogin(AController* NewPlayer)
@@ -31,8 +35,44 @@ void ATheGameMode::OnPostLogin(AController* NewPlayer)
 
 void ATheGameMode::BeginPlay()
 {
-	
+	S_SpawnMap(); 
 }
+
+void ATheGameMode::S_SpawnMap_Implementation()
+{
+	Multi_SpawnMap();
+}
+
+void ATheGameMode::Multi_SpawnMap_Implementation()
+{
+	for(int i = 0; i < _MaxTreeNumber; i++)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.Instigator = GetInstigator();
+
+		FVector AssetSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-6000,6000),UKismetMathLibrary::RandomIntegerInRange(-6000, 6000),5.0f);
+		FRotator AssetSpawnRotation(0.0f, 0.0f, 0.0f);
+
+		GetWorld()->SpawnActor<AMyTree>(_MyTree, AssetSpawnLocation, AssetSpawnRotation, SpawnParams);
+		
+	}
+	for(int i = 0; i < _MaxBushNumber; i++)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.Instigator = GetInstigator();
+
+		FVector AssetSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-6000,6000),UKismetMathLibrary::RandomIntegerInRange(-6000, 6000),5.0f);
+		FRotator AssetSpawnRotation(0.0f, 0.0f, 0.0f);
+
+		GetWorld()->SpawnActor<AMyBush>(_MyBush, AssetSpawnLocation, AssetSpawnRotation, SpawnParams);
+		
+	}
+}
+
 
 
 void ATheGameMode::GM_SpawnCharacters_Implementation(AThePlayerController* _PlayerController)
@@ -43,7 +83,7 @@ void ATheGameMode::GM_SpawnCharacters_Implementation(AThePlayerController* _Play
 	SpawnParams.Owner = GetOwner();
 	SpawnParams.Instigator = GetInstigator();
 
-	FVector CharacterSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-2000, 2000),5.0f);
+	FVector CharacterSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-5000, 5000),5);
 	FRotator CharacterSpawnRotation(0.0f, 0.0f, 0.0f); 
 
 	if(IsValid(_TheHunterCharacter) && IsValid(_TheSurvivorCharacter))

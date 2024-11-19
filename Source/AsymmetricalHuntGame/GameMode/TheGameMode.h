@@ -6,6 +6,8 @@
 #include "GameFramework/GameMode.h"
 #include "TheGameMode.generated.h"
 
+class AMyBush;
+class AMyTree;
 class ASurvivor_Craig;
 class ACharacter;
 class AHunter_Ghost;
@@ -23,10 +25,14 @@ public:
 	
 	UFUNCTION(Server, Reliable)
 	void GM_SpawnCharacters(AThePlayerController* _PlayerControllerRef);
+	UFUNCTION(Server, Reliable)
+	void S_SpawnMap();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_SpawnMap();
+
 	
 	UPROPERTY(BlueprintReadOnly)
 	TArray<AThePlayerController*> _ConnectedPlayers;
-	
 protected:
 
 	//Hunter Subclasses
@@ -34,6 +40,18 @@ protected:
 	TSubclassOf<AHunter_Ghost> _TheHunterCharacter;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ASurvivor_Craig> _TheSurvivorCharacter;
+
+	
+	//Map Asset Spawn
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<AMyTree> _MyTree;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<AMyBush> _MyBush;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int _MaxTreeNumber;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int _MaxBushNumber;
 	
 	virtual void OnPostLogin(AController* NewPlayer) override;
 

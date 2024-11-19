@@ -23,8 +23,3 @@ void AProjectile_Ghost::OnCollisionOverlap(UPrimitiveComponent* OverlappedCompon
 	Super::OnCollisionOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
 
-void AProjectile_Ghost::S_OnCollision(ASurvivor_Base* _HitSurvivor)
-{
-	Super::S_OnCollision(_HitSurvivor);
-}
-

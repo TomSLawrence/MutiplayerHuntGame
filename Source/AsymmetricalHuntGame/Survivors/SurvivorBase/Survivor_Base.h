@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "Survivor_Base.generated.h"
 
+class AHunter_Base;
 class AProjectile_Base;
 class USphereComponent;
 class UCapsuleComponent;
@@ -47,10 +48,6 @@ public:
 	virtual void S_BaseSurvivorDamage();
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_BaseSurvivorDamage();
-	UFUNCTION(Server, Reliable)
-	virtual void S_HeadSurvivorDamage(AProjectile_Base* _Projectile);
-	UFUNCTION(NetMulticast, Reliable)
-	virtual void Multi_HeadSurvivorDamage(AProjectile_Base* _Projectile);
 	
 	UFUNCTION(Server, Reliable)
 	virtual void S_HealingSurvivorAction();
@@ -68,16 +65,24 @@ public:
 	virtual void Multi_HealSurvivor();
 
 	UFUNCTION()
-	virtual void OnActionCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	virtual void OnSurvivorCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
-	virtual void OnActionCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	virtual void OnSurvivorCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	
 	UFUNCTION()
-	virtual void OnHeadCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	virtual void OnHunterCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void OnHunterCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCapsuleComponent> _Collision;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCapsuleComponent> _SurvivorActionCollision;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCapsuleComponent> _HunterActionCollision;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -92,14 +97,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> _EyeMesh1;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> _EyeMesh2;
-	UPROPERTY(EditAnywhere)
 	
-	TObjectPtr<UCapsuleComponent> _Collision;
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UCapsuleComponent> _ActionCollision;
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<USphereComponent> _HeadCollision;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> _Camera;
 	UPROPERTY(EditAnywhere)
@@ -124,13 +122,11 @@ protected:
 	FTimerHandle FHealHandle;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	bool canHeal;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ASurvivor_Base> _OverlappedSurvivor;
-
-	UPROPERTY()
-	FVector _StandScale;
-	UPROPERTY()
-	FVector _CrouchScale;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<AHunter_Base> _OverlappedHunter;
 
 	//Player Velocity
 	UPROPERTY()

@@ -62,6 +62,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UArrowComponent> _ProjectileSpawn;
 
+	//Public variables
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool _SurvivorInteract;
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -91,16 +96,6 @@ protected:
 	bool isAiming;
 	UPROPERTY(EditAnywhere)
 	float _AimingSensitivity;
-
-	//Player Velocity
-	UPROPERTY()
-	FVector _PlayerVelocity;
-
-	UPROPERTY()
-	TObjectPtr<AActor> _HitSurvivor;
-	UPROPERTY()
-	float _TraceDistance;
-
 
 public:
 	

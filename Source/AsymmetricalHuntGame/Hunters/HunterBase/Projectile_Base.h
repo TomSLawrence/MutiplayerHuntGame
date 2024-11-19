@@ -30,12 +30,13 @@ public:
 	TObjectPtr<UProjectileMovementComponent> _ProjectileMovement;
 
 
-	UFUNCTION()
+	UFUNCTION(Server, Reliable)
 	 virtual void OnCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
 
-	UFUNCTION(Server, Reliable)
-	virtual void S_OnCollision(ASurvivor_Base* _HitSurvivor);
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _hasOverlapped;
 	
 protected:
 	// Called when the game starts or when spawned

@@ -13,7 +13,6 @@ AHunter_Base::AHunter_Base()
 	
 	_Collision = GetCapsuleComponent();
 	_CharacterMovement = GetCharacterMovement();
-	_PlayerVelocity = _CharacterMovement->GetLastUpdateVelocity();
 
 	_CharacterMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Character_Mesh"));
 	_CharacterMesh->SetupAttachment(_Collision);
@@ -33,15 +32,13 @@ AHunter_Base::AHunter_Base()
 	_ProjectileSpawn = CreateDefaultSubobject<UArrowComponent>(TEXT("Projectile Spawn"));
 	_ProjectileSpawn->SetupAttachment(_WeaponMesh);
 
+	_CharacterMesh->SetOnlyOwnerSee(false);
+
 	SetReplicates(true);
 	SetReplicateMovement(true);
 	GetCharacterMovement()->SetIsReplicated(true);
 }
 
-void AHunter_Base::IAShoot_Implementation_Implementation(const FInputActionInstance& Instance)
-{
-	//Shooting Function called on individual hunters
-}
 
 // Called when the game starts or when spawned
 void AHunter_Base::BeginPlay()
@@ -53,11 +50,9 @@ void AHunter_Base::BeginPlay()
 	
 	_RaisedWeaponLocation = FVector(110.0f, 0.0f, -40.0f);
 	_LoweredWeaponLocation = FVector(60.f, 80.f, -40.f);
-
-	_TraceDistance = 5000.0f;
-
-
+	
 	isAiming = false;
+	_SurvivorInteract = false;
 }
 
 void AHunter_Base::IACharacterMove_Implementation(FVector _InputAxis)
@@ -137,6 +132,11 @@ void AHunter_Base::IAStand_Implementation_Implementation(const FInputActionInsta
 void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstance& Instance)
 {
 	Jump();
+}
+
+void AHunter_Base::IAShoot_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	//Shooting Function called on individual hunters
 }
 
 void AHunter_Base::IAAim_Implementation_Implementation(const FInputActionInstance& Instance)
