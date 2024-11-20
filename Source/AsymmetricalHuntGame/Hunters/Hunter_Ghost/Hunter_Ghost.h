@@ -20,9 +20,6 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AProjectile_Ghost> _Projectile;
 
 public:
 
@@ -37,6 +34,13 @@ public:
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAStopAiming_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAInteract_Implementation(const FInputActionInstance& Instance) override;
+
+	virtual void OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
+	virtual void OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
 
 };
 

@@ -58,6 +58,8 @@ public:
 	UInputAction* _Aim;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
 	UInputAction* _Shoot;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=InputMapping, meta=(AllowPrivateAccess = "true"))
+	UInputAction* _Interact;
 	
 	//Adding controller action methods Client-Side
 	void MoveInput(const FInputActionInstance& Instance);
@@ -72,6 +74,7 @@ public:
 	void ShootInput(const FInputActionInstance& Instance);
 	void AimInput(const FInputActionInstance& Instance);
 	void StopAiming(const FInputActionInstance& Instance);
+	void Interact(const FInputActionInstance& Instance);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void S_MoveInput(const FVector _PlayerInput);
@@ -97,6 +100,8 @@ public:
 	void S_AimInput(const FInputActionInstance& Instance);
 	UFUNCTION(Server, Reliable, WithValidation)
 	void S_StopAiming(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_Interact(const FInputActionInstance& Instance);
 
 	UFUNCTION(BlueprintCallable)
 	void PC_SpawnCharacters(ATheGameMode* _GameModeRef);

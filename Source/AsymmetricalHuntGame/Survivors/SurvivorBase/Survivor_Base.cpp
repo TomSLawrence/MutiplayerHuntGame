@@ -1,11 +1,11 @@
 ﻿#include "Survivor_Base.h"
 
 #include "AsymmetricalHuntGame/Hunters/HunterBase/Hunter_Base.h"
-#include "AsymmetricalHuntGame/Hunters/HunterBase/Projectile_Base.h"
+#include "AsymmetricalHuntGame/Interactables/TheFuse.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Components/SphereComponent.h"
+#include "Components/ArrowComponent.h"
 #include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogSurvivorBase, Display, All);
@@ -15,15 +15,10 @@ ASurvivor_Base::ASurvivor_Base()
 {
 	_Collision = GetCapsuleComponent();
 	_SurvivorActionCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Survivor Action Collision"));
-	_HunterActionCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hunter Action Collision"));
 	
 	_SurvivorActionCollision->SetupAttachment(_Collision);
 	_SurvivorActionCollision->SetCapsuleHalfHeight(120.0f);
 	_SurvivorActionCollision->SetCapsuleRadius(120.0f);
-	
-	_HunterActionCollision->SetupAttachment(_Collision);
-	_HunterActionCollision->SetCapsuleHalfHeight(120.0f);
-	_HunterActionCollision->SetCapsuleRadius(120.0f);
 	
 	_CharacterMovement = GetCharacterMovement();
 	_PlayerVelocity = _CharacterMovement->GetLastUpdateVelocity();
@@ -36,11 +31,15 @@ ASurvivor_Base::ASurvivor_Base()
 	_EyeMesh1->SetupAttachment(_HeadMesh);
 	_EyeMesh2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Eye2"));
 	_EyeMesh2->SetupAttachment(_HeadMesh);
+
+	_PickupLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Pickup Location"));
+	_PickupLocation->SetupAttachment(_Collision);
 	
 	_Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	_Camera->SetupAttachment(_Collision);
 	_Camera->SetRelativeLocation(FVector(30.0f, 0.0f, 100.0f));
 	_Camera->bUsePawnControlRotation = true;
+
 	
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
@@ -63,8 +62,8 @@ void ASurvivor_Base::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ASurvivor_Base, _HealTime);
 	DOREPLIFETIME(ASurvivor_Base, canHeal);
 	DOREPLIFETIME(ASurvivor_Base, _SurvivorHealth);
+	DOREPLIFETIME(ASurvivor_Base, isDowned);
 }
-
 
 // Called when the game starts or when spawned
 void ASurvivor_Base::BeginPlay()
@@ -75,14 +74,14 @@ void ASurvivor_Base::BeginPlay()
 	canHeal = false;
 	_HealTime = 0.0f;
 	_OverlappedSurvivor = nullptr;
+	_OverlappedFuse = nullptr;
 	_SurvivorHealth = _SurvivorMaxHealth;
+	isDowned = false;
+	_isHoldingObject = false;
 
 	_SurvivorActionCollision->OnComponentBeginOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorCollisionOverlap);
 	_SurvivorActionCollision->OnComponentEndOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorCollisionEndOverlap);
-
-	_HunterActionCollision->OnComponentBeginOverlap.AddDynamic(this, &ASurvivor_Base::OnHunterCollisionOverlap);
-	_HunterActionCollision->OnComponentEndOverlap.AddDynamic(this, &ASurvivor_Base::OnHunterCollisionEndOverlap);
-
+	
 }
 
 //Movement Functions
@@ -121,7 +120,7 @@ void ASurvivor_Base::IAAction_Implementation_Implementation(const FInputActionIn
 {
 	//Any actions go here
 
-	if(canHeal)
+	if(!isDowned && canHeal && !_isHoldingObject)
 	{
 		S_HealingSurvivorAction();
 	}
@@ -129,36 +128,85 @@ void ASurvivor_Base::IAAction_Implementation_Implementation(const FInputActionIn
 
 void ASurvivor_Base::IAStopAction_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	S_StopHealingSurvivor();
+	if(!isDowned && !_isHoldingObject)
+	{
+		S_StopHealingSurvivor();
+	}
 }
 
 void ASurvivor_Base::IASprint_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
+	if(!isDowned && !_isHoldingObject)
+	{
+		_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
+	}
 }
 
 void ASurvivor_Base::IAStopSprinting_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+	if(!isDowned && !_isHoldingObject)
+	{
+		_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+	}
 }
 
 void ASurvivor_Base::IACrouch_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	Crouch();
+	if(!isDowned && !_isHoldingObject)
+	{
+		Crouch();
+	}
 }
 
 void ASurvivor_Base::IAStand_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	UnCrouch();
+	if(!isDowned && !_isHoldingObject)
+	{
+		UnCrouch();
+	}
 }
 
 void ASurvivor_Base::IAJump_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	Jump();
+	if(!isDowned && !_isHoldingObject)
+	{
+		Jump();
+	}
+}
+
+void ASurvivor_Base::IAInteract_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	if(!isDowned)
+	{
+		if(_OverlappedSurvivor)
+		{
+			if(_OverlappedSurvivor->isDowned)
+			{
+				if(!_isHoldingObject)
+				{
+					_OverlappedSurvivor->_CharacterMovement->SetMovementMode(MOVE_None);
+					_OverlappedSurvivor->AttachToComponent(_PickupLocation, FAttachmentTransformRules::SnapToTargetIncludingScale);
+					_isHoldingObject = true;
+					canHeal = false;
+				}
+				else
+				{
+					_OverlappedSurvivor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+					_OverlappedSurvivor->_CharacterMovement->SetMovementMode(MOVE_Walking);
+					_isHoldingObject = false;
+					canHeal = true;
+				}
+			}
+		}
+		
+	}
 }
 
 
+
 //Server Functions
+
+//---------------------------------------------------------------------------------------
 
 //Damage
 void ASurvivor_Base::S_BaseSurvivorDamage_Implementation()
@@ -168,17 +216,17 @@ void ASurvivor_Base::S_BaseSurvivorDamage_Implementation()
 
 void ASurvivor_Base::Multi_BaseSurvivorDamage_Implementation()
 {
-	//_SurvivorHealth--;
+	_SurvivorHealth--;
 	
 	if(_SurvivorHealth <= 0)
 	{
-		Destroy();
+		S_SurvivorDowned();
 	}
 	
 	
 }
 
-
+//---------------------------------------------------------------------------------------
 
 //Healing
 void ASurvivor_Base::S_HealingSurvivorAction_Implementation()
@@ -192,25 +240,51 @@ void ASurvivor_Base::Multi_HealingSurvivorAction_Implementation()
 	{
 		if(_OverlappedSurvivor->_SurvivorHealth < _SurvivorMaxHealth)
 		{
-			if(_OverlappedSurvivor->_HealTime < 10)
+			if(!_OverlappedSurvivor->isDowned)
 			{
-				_CharacterMovement->SetMovementMode(MOVE_None);
-				_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_None);
-				
-				if(!FHealHandle.IsValid())
+				if(_OverlappedSurvivor->_HealTime < 10)
 				{
-					GetWorld()->GetTimerManager().SetTimer(FHealHandle, this,
-					&ASurvivor_Base::S_HealSurvivor, 1.0f, true);
-					GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Healing!"));
+					_CharacterMovement->SetMovementMode(MOVE_None);
+					_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_None);
+				
+					if(!FHealHandle.IsValid())
+					{
+						GetWorld()->GetTimerManager().SetTimer(FHealHandle, this,
+						&ASurvivor_Base::S_HealSurvivor, 1.0f, true);
+						GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Healing!"));
+					}
 				}
+				else
+				{
+					_OverlappedSurvivor->_SurvivorHealth = _SurvivorMaxHealth;
+					canHeal = false;
+					S_StopHealingSurvivor();
+					_OverlappedSurvivor->_HealTime = 0.0f;
+				}
+				
 			}
 			else
 			{
-				_OverlappedSurvivor->_SurvivorHealth = _SurvivorMaxHealth;
-				canHeal = false;
-				S_StopHealingSurvivor();
-				_OverlappedSurvivor->_HealTime = 0.0f;
+				if(_OverlappedSurvivor->_HealTime < 5)
+				{
+					_CharacterMovement->SetMovementMode(MOVE_None);
+					_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_None);
+				
+					if(!FHealHandle.IsValid())
+					{
+						GetWorld()->GetTimerManager().SetTimer(FHealHandle, this,
+						&ASurvivor_Base::S_HealSurvivor, 1.0f, true);
+						GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Healing!"));
+					}
+				}
+				else
+				{
+					S_StopHealingSurvivor();
+					_CharacterMovement->SetMovementMode(MOVE_Walking);
+					_OverlappedSurvivor->S_SurvivorRevived();
+				}
 			}
+			
 		}
 		else if(!_OverlappedSurvivor)
 		{
@@ -221,21 +295,6 @@ void ASurvivor_Base::Multi_HealingSurvivorAction_Implementation()
 		}
 
 	}
-}
-
-void ASurvivor_Base::S_StopHealingSurvivor_Implementation()
-{
-	Multi_StopHealingSurvivor();
-}
-
-void ASurvivor_Base::Multi_StopHealingSurvivor_Implementation()
-{
-	_CharacterMovement->SetMovementMode(MOVE_Walking);
-	if(_OverlappedSurvivor)
-	{
-		_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	}
-	GetWorldTimerManager().ClearTimer(FHealHandle);
 }
 
 void ASurvivor_Base::S_HealSurvivor_Implementation()
@@ -256,21 +315,79 @@ void ASurvivor_Base::Multi_HealSurvivor_Implementation()
 
 
 
+void ASurvivor_Base::S_StopHealingSurvivor_Implementation()
+{
+	Multi_StopHealingSurvivor();
+}
+
+void ASurvivor_Base::Multi_StopHealingSurvivor_Implementation()
+{
+	_CharacterMovement->SetMovementMode(MOVE_Walking);
+	if(_OverlappedSurvivor)
+	{
+		_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+	GetWorldTimerManager().ClearTimer(FHealHandle);
+}
+
+
+
+//Survivor Downed
+void ASurvivor_Base::S_SurvivorDowned_Implementation()
+{
+	Multi_SurvivorDowned();
+}
+
+void ASurvivor_Base::Multi_SurvivorDowned_Implementation()
+{
+	isDowned = true;
+	_Camera->SetRelativeLocation(FVector(30.0f, 0.0f, -70.0f));
+	_Mesh->SetWorldRotation(FRotator(-90.0f, 0.0f, 0.0f));
+	_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel4, ECR_Ignore);
+	_Collision->SetCollisionObjectType(ECC_GameTraceChannel8);
+	_CharacterMovement->MaxWalkSpeed = 100.0f;
+}
+
+void ASurvivor_Base::S_SurvivorRevived_Implementation()
+{
+	Multi_SurvivorRevived();
+}
+
+void ASurvivor_Base::Multi_SurvivorRevived_Implementation()
+{
+	_SurvivorHealth = 1;
+	_Camera->SetRelativeLocation(FVector(30.0f, 0.0f, 100.0f));
+	_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel4, ECR_Overlap);
+	_Collision->SetCollisionObjectType(ECC_GameTraceChannel2);
+	_Mesh->SetWorldRotation(FRotator(-0.0f, 0.0f, 0.0f));
+	_CharacterMovement->SetMovementMode(MOVE_Walking);
+	isDowned = false;
+	_HealTime = 0.0f;
+}
 
 
 
 
 //Collisions
 
+
+
 void ASurvivor_Base::OnSurvivorCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                              UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	ASurvivor_Base* _HitSurvivor = Cast<ASurvivor_Base>(OtherActor);
-	_OverlappedSurvivor = _HitSurvivor;
-	
-	if(_OverlappedSurvivor->_SurvivorHealth < _SurvivorMaxHealth)
+	AActor* _HitActor = Cast<AActor>(OtherActor);
+
+	if(ASurvivor_Base* _HitSurvivor = Cast<ASurvivor_Base>(_HitActor))
 	{
-		canHeal = true;
+		_OverlappedSurvivor = _HitSurvivor;
+		if(_OverlappedSurvivor->_SurvivorHealth < _SurvivorMaxHealth)
+		{
+			canHeal = true;
+		}
+	}
+	else if(ATheFuse* _HitFuse = Cast<ATheFuse>(_HitActor))
+	{
+		_OverlappedFuse = _HitFuse;
 	}
 }
 
@@ -282,29 +399,9 @@ void ASurvivor_Base::OnSurvivorCollisionEndOverlap(UPrimitiveComponent* Overlapp
 		canHeal = false;
 		_OverlappedSurvivor = nullptr;
 	}
-}
-
-void ASurvivor_Base::OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	AHunter_Base* _HitHunter = Cast<AHunter_Base>(OtherActor);
-	_OverlappedHunter = _HitHunter;
-	
-	if(_OverlappedHunter)
+	else if(_OverlappedFuse)
 	{
-		_OverlappedHunter->_SurvivorInteract = true;
+		_OverlappedFuse = nullptr;
 	}
 }
-
-void ASurvivor_Base::OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if(_OverlappedHunter)
-	{
-		_OverlappedHunter->_SurvivorInteract = false;
-		_OverlappedHunter = nullptr;
-		
-	}
-}
-
 

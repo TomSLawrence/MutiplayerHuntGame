@@ -66,6 +66,10 @@ void ASurvivor_Craig::IAJump_Implementation(const FInputActionInstance& Instance
 	Super::IAJump_Implementation(Instance);
 }
 
+void ASurvivor_Craig::IAInteract_Implementation(const FInputActionInstance& Instance)
+{
+	Super::IAInteract_Implementation(Instance);
+}
 
 
 //Server functions
@@ -128,17 +132,6 @@ void ASurvivor_Craig::OnSurvivorCollisionEndOverlap(UPrimitiveComponent* Overlap
 	Super::OnSurvivorCollisionEndOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 }
 
-void ASurvivor_Craig::OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	Super::OnHunterCollisionOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep,
-	                                SweepResult);
-}
 
-void ASurvivor_Craig::OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	Super::OnHunterCollisionEndOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
-}
 
 

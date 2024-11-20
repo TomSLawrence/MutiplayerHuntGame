@@ -27,6 +27,7 @@ void AThePlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Triggered, this, &AThePlayerController::AimInput);
 		EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Completed, this, &AThePlayerController::StopAiming);
 		EnhancedInputComponent->BindAction(_Shoot, ETriggerEvent::Triggered, this, &AThePlayerController::ShootInput);
+		EnhancedInputComponent->BindAction(_Interact, ETriggerEvent::Triggered, this, &AThePlayerController::Interact);
 	}
 }
 
@@ -240,6 +241,19 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 	}
 }
 
+void AThePlayerController::Interact(const FInputActionInstance& Instance)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Pickup!"));
+	if(this->IsLocalController() && HasAuthority())
+	{
+		Execute_IAInteract(GetCharacter(), Instance);
+	}
+	else
+	{
+		S_Interact(Instance);
+	}
+}
+
 
 //Server Functions
 
@@ -309,12 +323,15 @@ void AThePlayerController::S_AimInput_Implementation(const FInputActionInstance&
 	Execute_IAAim(GetCharacter(), Instance);
 }
 
-
 void AThePlayerController::S_StopAiming_Implementation(const FInputActionInstance& Instance)
 {
 	Execute_IAStopAiming(GetCharacter(), Instance);
 }
 
+void AThePlayerController::S_Interact_Implementation(const FInputActionInstance& Instance)
+{
+	Execute_IAInteract(GetCharacter(), Instance);
+}
 
 
 //Server Validation
@@ -378,3 +395,8 @@ bool AThePlayerController::S_StopAiming_Validate(const FInputActionInstance& Ins
 {
 	return true;
 }
+bool AThePlayerController::S_Interact_Validate(const FInputActionInstance& Instance)
+{
+	return true;
+}
+

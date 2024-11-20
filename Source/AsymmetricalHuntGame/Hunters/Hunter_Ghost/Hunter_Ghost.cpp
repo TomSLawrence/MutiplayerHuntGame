@@ -1,8 +1,6 @@
 ﻿#include "Hunter_Ghost.h"
 
 #include "AsymmetricalHuntGame/Controller/ThePlayerController.h"
-#include "Components/ArrowComponent.h"
-#include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Projectile_Ghost.h"
 
 
 // Sets default values
@@ -59,17 +57,33 @@ void AHunter_Ghost::IAJump_Implementation(const FInputActionInstance& Instance)
 
 void AHunter_Ghost::IAShoot_Implementation(const FInputActionInstance& Instance)
 {
-	if(HasAuthority())
-	{
-		FActorSpawnParameters _ProjectileSpawnParams;
-		_ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		_ProjectileSpawnParams.Owner = GetOwner();
-		_ProjectileSpawnParams.Instigator = GetInstigator();
-		GetWorld()->SpawnActor(_Projectile, &_ProjectileSpawn->GetComponentTransform(), _ProjectileSpawnParams);
-	}
+	Super::IAShoot_Implementation(Instance);
 }
 
 void AHunter_Ghost::IAAim_Implementation(const FInputActionInstance& Instance)
 {
 	Super::IAAim_Implementation(Instance);
+}
+
+void AHunter_Ghost::IAStopAiming_Implementation(const FInputActionInstance& Instance)
+{
+	Super::IAStopAiming_Implementation(Instance);
+}
+
+void AHunter_Ghost::IAInteract_Implementation(const FInputActionInstance& Instance)
+{
+	Super::IAInteract_Implementation(Instance);
+}
+
+void AHunter_Ghost::OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                             UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	Super::OnHunterCollisionOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep,
+									SweepResult);
+}
+
+void AHunter_Ghost::OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	Super::OnHunterCollisionEndOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 }

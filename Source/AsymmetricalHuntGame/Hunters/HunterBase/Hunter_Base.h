@@ -7,7 +7,9 @@
 #include "AsymmetricalHuntGame/Controller/Interfaces/IAInterface.h"
 #include "Hunter_Base.generated.h"
 
+class ASurvivor_Base;
 class AProjectile_Base;
+class AMyTree;
 class UCapsuleComponent;
 class UCameraComponent;
 class UArrowComponent;
@@ -30,21 +32,17 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
-	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
-	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
-	UFUNCTION(NetMulticast, Reliable)
-	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStopAiming_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void IAInteract_Implementation(const FInputActionInstance& Instance) override;
 
 
 	//Player Components
@@ -60,20 +58,25 @@ public:
 	TObjectPtr<UCharacterMovementComponent> _CharacterMovement;
 
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UArrowComponent> _ProjectileSpawn;
+	TObjectPtr<UCapsuleComponent> _HunterActionCollision;
 
 	//Public variables
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool _SurvivorInteract;
 
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	virtual void OnHunterCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void OnHunterCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	//Movement Variables
 	UPROPERTY(EditAnywhere)
-	float _SprintSpeed;
+	float _CarryingSpeed;
 	UPROPERTY(EditAnywhere)
 	float _WalkSpeed;
 	UPROPERTY(EditAnywhere)
@@ -96,6 +99,23 @@ protected:
 	bool isAiming;
 	UPROPERTY(EditAnywhere)
 	float _AimingSensitivity;
+
+	UPROPERTY()
+	FVector _StartLocation;
+	UPROPERTY()
+	FVector _EndLocation;
+	UPROPERTY()
+	int _FiringDistance;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UArrowComponent> _PickupLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ASurvivor_Base> _OverlappedSurvivor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool _SurvivorInteract;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool _isHoldingSurvivor;
 
 public:
 	

@@ -45,6 +45,7 @@ void ATheGameMode::S_SpawnMap_Implementation()
 
 void ATheGameMode::Multi_SpawnMap_Implementation()
 {
+	/*
 	for(int i = 0; i < _MaxTreeNumber; i++)
 	{
 		FActorSpawnParameters SpawnParams;
@@ -71,6 +72,7 @@ void ATheGameMode::Multi_SpawnMap_Implementation()
 		GetWorld()->SpawnActor<AMyBush>(_MyBush, AssetSpawnLocation, AssetSpawnRotation, SpawnParams);
 		
 	}
+	*/
 }
 
 

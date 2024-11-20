@@ -31,6 +31,7 @@ public:
 	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAInteract_Implementation(const FInputActionInstance& Instance) override;
 
 	//Server Functions
 
@@ -50,10 +51,6 @@ public:
 	virtual void OnSurvivorCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	virtual void OnSurvivorCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
-	virtual void OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
-	virtual void OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
 };
 
