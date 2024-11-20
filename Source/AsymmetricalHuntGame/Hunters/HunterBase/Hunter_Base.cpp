@@ -151,10 +151,10 @@ void AHunter_Base::IAShoot_Implementation_Implementation(const FInputActionInsta
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, _StartLocation, _EndLocation,
 			ECC_GameTraceChannel4, QueryParams);
 
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit Survivor!"));
 		
 		if(bHit)
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit Survivor!"));
 			if(ASurvivor_Base* HitSurvivor = Cast<ASurvivor_Base>(HitResult.GetActor()))
 			{
 				HitSurvivor->S_BaseSurvivorDamage();
