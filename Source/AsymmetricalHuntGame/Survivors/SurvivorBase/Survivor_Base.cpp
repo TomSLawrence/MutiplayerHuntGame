@@ -1,6 +1,7 @@
 ﻿#include "Survivor_Base.h"
 
 #include "AsymmetricalHuntGame/Hunters/HunterBase/Hunter_Base.h"
+#include "AsymmetricalHuntGame/Interactables/TheBeacon.h"
 #include "AsymmetricalHuntGame/Interactables/TheFuse.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -78,7 +79,8 @@ void ASurvivor_Base::BeginPlay()
 	_SurvivorHealth = _SurvivorMaxHealth;
 	isDowned = false;
 	_isHoldingObject = false;
-
+	_isHoldingFuse = false;
+	
 	_SurvivorActionCollision->OnComponentBeginOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorCollisionOverlap);
 	_SurvivorActionCollision->OnComponentEndOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorCollisionEndOverlap);
 	
@@ -120,9 +122,17 @@ void ASurvivor_Base::IAAction_Implementation_Implementation(const FInputActionIn
 {
 	//Any actions go here
 
-	if(!isDowned && canHeal && !_isHoldingObject)
+	if(!isDowned && !_isHoldingObject)
 	{
-		S_HealingSurvivorAction();
+		if(canHeal && !_isHoldingFuse)
+		{
+			S_HealingSurvivorAction();
+		}
+		else if(_CanRepair)
+		{
+			S_RepairingBeaconAction();
+		}
+		
 	}
 }
 
@@ -130,7 +140,14 @@ void ASurvivor_Base::IAStopAction_Implementation_Implementation(const FInputActi
 {
 	if(!isDowned && !_isHoldingObject)
 	{
-		S_StopHealingSurvivor();
+		if(canHeal)
+		{
+			S_StopHealingSurvivor();
+		}
+		else if(_CanRepair)
+		{
+			S_StopRepairingBeaconAction();
+		}
 	}
 }
 
@@ -182,7 +199,7 @@ void ASurvivor_Base::IAInteract_Implementation_Implementation(const FInputAction
 		{
 			if(_OverlappedSurvivor->isDowned)
 			{
-				if(!_isHoldingObject)
+				if(!_isHoldingObject || !_isHoldingFuse)
 				{
 					_OverlappedSurvivor->_CharacterMovement->SetMovementMode(MOVE_None);
 					_OverlappedSurvivor->AttachToComponent(_PickupLocation, FAttachmentTransformRules::SnapToTargetIncludingScale);
@@ -196,6 +213,21 @@ void ASurvivor_Base::IAInteract_Implementation_Implementation(const FInputAction
 					_isHoldingObject = false;
 					canHeal = true;
 				}
+			}
+		}
+		if(_OverlappedFuse)
+		{
+			if(!_isHoldingObject && !_isHoldingFuse)
+			{
+				_OverlappedFuse->AttachToComponent(_PickupLocation, FAttachmentTransformRules::SnapToTargetIncludingScale);
+				_isHoldingFuse = true;
+				canHeal = false;
+			}
+			else
+			{
+				_OverlappedFuse->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+				_isHoldingFuse = false;
+				canHeal = true;
 			}
 		}
 		
@@ -236,64 +268,57 @@ void ASurvivor_Base::S_HealingSurvivorAction_Implementation()
 
 void ASurvivor_Base::Multi_HealingSurvivorAction_Implementation()
 {
-	if(HasAuthority())
+	if(HasAuthority() && _OverlappedSurvivor->_SurvivorHealth < _SurvivorMaxHealth)
 	{
-		if(_OverlappedSurvivor->_SurvivorHealth < _SurvivorMaxHealth)
+		if(!_OverlappedSurvivor->isDowned)
 		{
-			if(!_OverlappedSurvivor->isDowned)
+			if(_OverlappedSurvivor->_HealTime < 10)
 			{
-				if(_OverlappedSurvivor->_HealTime < 10)
-				{
-					_CharacterMovement->SetMovementMode(MOVE_None);
-					_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_None);
+				_CharacterMovement->SetMovementMode(MOVE_None);
+				_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_None);
 				
-					if(!FHealHandle.IsValid())
-					{
-						GetWorld()->GetTimerManager().SetTimer(FHealHandle, this,
-						&ASurvivor_Base::S_HealSurvivor, 1.0f, true);
-						GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Healing!"));
-					}
-				}
-				else
+				if(!FTimerHandle.IsValid())
 				{
-					_OverlappedSurvivor->_SurvivorHealth = _SurvivorMaxHealth;
-					canHeal = false;
-					S_StopHealingSurvivor();
-					_OverlappedSurvivor->_HealTime = 0.0f;
+					GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this,
+					&ASurvivor_Base::S_HealSurvivor, 1.0f, true);
+					GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Healing!"));
 				}
-				
 			}
 			else
 			{
-				if(_OverlappedSurvivor->_HealTime < 5)
-				{
-					_CharacterMovement->SetMovementMode(MOVE_None);
-					_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_None);
+				_OverlappedSurvivor->_SurvivorHealth = _SurvivorMaxHealth;
+				canHeal = false;
+				S_StopHealingSurvivor();
+				_OverlappedSurvivor->_HealTime = 0.0f;
+			}
 				
-					if(!FHealHandle.IsValid())
-					{
-						GetWorld()->GetTimerManager().SetTimer(FHealHandle, this,
-						&ASurvivor_Base::S_HealSurvivor, 1.0f, true);
-						GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Healing!"));
-					}
-				}
-				else
+		}
+		else
+		{
+			if(_OverlappedSurvivor->_HealTime < 5)
+			{
+				_CharacterMovement->SetMovementMode(MOVE_None);
+				_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_None);
+				
+				if(!FTimerHandle.IsValid())
 				{
-					S_StopHealingSurvivor();
-					_CharacterMovement->SetMovementMode(MOVE_Walking);
-					_OverlappedSurvivor->S_SurvivorRevived();
+					GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this,
+					&ASurvivor_Base::S_HealSurvivor, 1.0f, true);
+					GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Healing!"));
 				}
 			}
+			else
+			{
+				S_StopHealingSurvivor();
+				_OverlappedSurvivor->S_SurvivorRevived();
+			}
+		}
 			
-		}
-		else if(!_OverlappedSurvivor)
-		{
-			canHeal = false;
-			S_StopHealingSurvivor();
-			_CharacterMovement->SetMovementMode(MOVE_Walking);
-			_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-		}
-
+	}
+	else if(!_OverlappedSurvivor)
+	{
+		canHeal = false;
+		S_StopHealingSurvivor();
 	}
 }
 
@@ -304,7 +329,7 @@ void ASurvivor_Base::S_HealSurvivor_Implementation()
 
 void ASurvivor_Base::Multi_HealSurvivor_Implementation()
 {
-	if(FHealHandle.IsValid())
+	if(FTimerHandle.IsValid())
 	{
 		if(_OverlappedSurvivor->_SurvivorHealth < _SurvivorMaxHealth)
 		{
@@ -327,9 +352,8 @@ void ASurvivor_Base::Multi_StopHealingSurvivor_Implementation()
 	{
 		_OverlappedSurvivor->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	}
-	GetWorldTimerManager().ClearTimer(FHealHandle);
+	GetWorldTimerManager().ClearTimer(FTimerHandle);
 }
-
 
 
 //Survivor Downed
@@ -346,6 +370,12 @@ void ASurvivor_Base::Multi_SurvivorDowned_Implementation()
 	_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel4, ECR_Ignore);
 	_Collision->SetCollisionObjectType(ECC_GameTraceChannel8);
 	_CharacterMovement->MaxWalkSpeed = 100.0f;
+	
+	if(_isHoldingFuse)
+	{
+		_OverlappedFuse->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		_isHoldingFuse = false;
+	}
 }
 
 void ASurvivor_Base::S_SurvivorRevived_Implementation()
@@ -368,9 +398,130 @@ void ASurvivor_Base::Multi_SurvivorRevived_Implementation()
 
 
 
+
+
+
+
+
+//Searching Chests / Fixing Beacons
+void ASurvivor_Base::S_SearchingChestAction_Implementation()
+{
+	Multi_SearchingChestAction();
+}
+
+void ASurvivor_Base::Multi_SearchingChestAction_Implementation()
+{
+	//Searching Chests
+}
+void ASurvivor_Base::S_StopSearchingChestAction_Implementation()
+{
+	Multi_StopSearchingChestAction();
+}
+
+void ASurvivor_Base::Multi_StopSearchingChestAction_Implementation()
+{
+	_CharacterMovement->SetMovementMode(MOVE_Walking);
+	GetWorldTimerManager().ClearTimer(FTimerHandle);
+}
+
+
+
+
+void ASurvivor_Base::S_RepairingBeaconAction_Implementation()
+{
+	Multi_RepairingBeaconAction();
+}
+
+void ASurvivor_Base::Multi_RepairingBeaconAction_Implementation()
+{
+	if(HasAuthority())
+	{
+		if(_OverlappedBeacon->_HasFuse || _isHoldingFuse)
+		{
+			
+			if(!_OverlappedBeacon->_HasFuse && _isHoldingFuse)
+			{
+				_OverlappedBeacon->_HasFuse = true;
+				_isHoldingFuse = false;
+				_OverlappedBeacon->_LightMesh->SetVisibility(true);
+				_OverlappedFuse->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+				_OverlappedFuse->Destroy();
+			}
+			else if(_OverlappedBeacon->_RepairTime < 10.0f)
+			{
+				_CharacterMovement->SetMovementMode(MOVE_None);
+				if(!FTimerHandle.IsValid())
+				{
+					GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this,
+						&ASurvivor_Base::S_RepairBeacons, 1.0f, true);
+				
+				}
+			}
+			else if(_OverlappedBeacon->_RepairTime >= 10.0f)
+			{
+				_OverlappedBeacon->_isCompleted = true;
+				S_StopRepairingBeaconAction();
+			}
+		
+		}
+		else if(!_OverlappedBeacon)
+		{
+			_CanRepair = false;
+			S_StopRepairingBeaconAction();
+		}
+	}
+	
+}
+
+void ASurvivor_Base::S_StopRepairingBeaconAction_Implementation()
+{
+	Multi_StopRepairingBeaconAction();
+}
+
+void ASurvivor_Base::Multi_StopRepairingBeaconAction_Implementation()
+{
+	_CharacterMovement->SetMovementMode(MOVE_Walking);
+	GetWorldTimerManager().ClearTimer(FTimerHandle);
+}
+
+
+
+
+
+//Searching Chests
+void ASurvivor_Base::S_SearchChests_Implementation()
+{
+	Multi_SearchChests();
+}
+
+void ASurvivor_Base::Multi_SearchChests_Implementation()
+{
+	if(FTimerHandle.IsValid())
+	{
+		//Search Chests
+	}
+}
+
+
+//Fixing Beacons
+
+void ASurvivor_Base::S_RepairBeacons_Implementation()
+{
+	Multi_RepairBeacons();
+}
+
+void ASurvivor_Base::Multi_RepairBeacons_Implementation()
+{
+	if(FTimerHandle.IsValid())
+	{
+		_OverlappedBeacon->_RepairTime += 1.0f;
+	}
+}
+
+
+
+
 //Collisions
-
-
 
 void ASurvivor_Base::OnSurvivorCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                                 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -385,9 +536,17 @@ void ASurvivor_Base::OnSurvivorCollisionOverlap(UPrimitiveComponent* OverlappedC
 			canHeal = true;
 		}
 	}
-	else if(ATheFuse* _HitFuse = Cast<ATheFuse>(_HitActor))
+	else if(ATheFuse* HitFuse = Cast<ATheFuse>(_HitActor))
 	{
-		_OverlappedFuse = _HitFuse;
+		_OverlappedFuse = HitFuse;
+	}
+	else if(ATheBeacon* HitBeacon = Cast<ATheBeacon>(_HitActor))
+	{
+		_OverlappedBeacon = HitBeacon;
+		if(_OverlappedBeacon->_RepairTime < _OverlappedBeacon->_MaxRepairTime)
+		{
+			_CanRepair = true;
+		}
 	}
 }
 
@@ -402,6 +561,11 @@ void ASurvivor_Base::OnSurvivorCollisionEndOverlap(UPrimitiveComponent* Overlapp
 	else if(_OverlappedFuse)
 	{
 		_OverlappedFuse = nullptr;
+	}
+	else if(_OverlappedBeacon)
+	{
+		_CanRepair = false;
+		_OverlappedBeacon = nullptr;
 	}
 }
 

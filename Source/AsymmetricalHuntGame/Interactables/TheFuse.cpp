@@ -16,6 +16,8 @@ ATheFuse::ATheFuse()
 
 	_Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	_Collision->SetupAttachment(_Mesh);
+
+	SetReplicates(true);
 }
 
 // Called when the game starts or when spawned

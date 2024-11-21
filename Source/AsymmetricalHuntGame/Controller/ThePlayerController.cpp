@@ -243,7 +243,6 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 
 void AThePlayerController::Interact(const FInputActionInstance& Instance)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Pickup!"));
 	if(this->IsLocalController() && HasAuthority())
 	{
 		Execute_IAInteract(GetCharacter(), Instance);

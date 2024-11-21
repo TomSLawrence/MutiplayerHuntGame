@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "Survivor_Base.generated.h"
 
+class ATheBeacon;
 class ATheFuse;
 class AHunter_Base;
 class AProjectile_Base;
@@ -71,10 +72,45 @@ public:
 	virtual void Multi_StopHealingSurvivor();
 
 	//Local Functions
+
+	//Healing
 	UFUNCTION(Server, Reliable)
 	virtual void S_HealSurvivor();
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_HealSurvivor();
+
+	//Searching Chests
+	UFUNCTION(Server, Reliable)
+	virtual void S_SearchChests();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_SearchChests();
+
+	//Fixing Beacons
+	UFUNCTION(Server, Reliable)
+	virtual void S_RepairBeacons();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_RepairBeacons();
+
+	UFUNCTION(Server, Reliable)
+	virtual void S_SearchingChestAction();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_SearchingChestAction();
+	UFUNCTION(Server, Reliable)
+	virtual void S_StopSearchingChestAction();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_StopSearchingChestAction();
+	
+
+
+	
+	UFUNCTION(Server, Reliable)
+	virtual void S_RepairingBeaconAction();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_RepairingBeaconAction();
+	UFUNCTION(Server, Reliable)
+	virtual void S_StopRepairingBeaconAction();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_StopRepairingBeaconAction();
 
 	UFUNCTION()
 	virtual void OnSurvivorCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -92,6 +128,9 @@ public:
 	bool isDowned;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCharacterMovementComponent> _CharacterMovement;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	bool _isHoldingFuse;
+
 	
 protected:
 	// Called when the game starts or when spawned
@@ -127,9 +166,14 @@ protected:
 	int _SurvivorMaxHealth;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	float _HealTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ATheBeacon> _OverlappedBeacon;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool _CanRepair;
 	
 	UPROPERTY()
-	FTimerHandle FHealHandle;
+	FTimerHandle FTimerHandle;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	bool canHeal;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
