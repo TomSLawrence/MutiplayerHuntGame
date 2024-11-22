@@ -3,6 +3,7 @@
 #include "AsymmetricalHuntGame/Hunters/HunterBase/Hunter_Base.h"
 #include "AsymmetricalHuntGame/Interactables/TheBeacon.h"
 #include "AsymmetricalHuntGame/Interactables/TheFuse.h"
+#include "AsymmetricalHuntGame/Interactables/TheVault.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
@@ -52,7 +53,24 @@ ASurvivor_Base::ASurvivor_Base()
 	SetReplicateMovement(true);
 	_CharacterMovement->SetIsReplicated(true);
 
+	//Initialising Variables
+	
+	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+	
 	_SurvivorMaxHealth = 2.0f;
+	canHeal = false;
+	_HealTime = 0.0f;
+	isDowned = false;
+	
+	_OverlappedSurvivor = nullptr;
+	_OverlappedFuse = nullptr;
+	_OverlappedVault = nullptr;
+	_isHoldingObject = false;
+	_isHoldingFuse = false;
+	
+	_canVault = false;
+	_IsVaulting = false;
+	_MaxVault = 1.0f;
 
 
 }
@@ -64,25 +82,27 @@ void ASurvivor_Base::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ASurvivor_Base, canHeal);
 	DOREPLIFETIME(ASurvivor_Base, _SurvivorHealth);
 	DOREPLIFETIME(ASurvivor_Base, isDowned);
+	DOREPLIFETIME(ASurvivor_Base, _VaultLocation);
+	DOREPLIFETIME(ASurvivor_Base, TargetLocation);
+	DOREPLIFETIME(ASurvivor_Base, _CurrentVault);
+	DOREPLIFETIME(ASurvivor_Base, _VaultStartLocation);
+	DOREPLIFETIME(ASurvivor_Base, _MaxVault);
+	
 }
 
 // Called when the game starts or when spawned
 void ASurvivor_Base::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
-	canHeal = false;
-	_HealTime = 0.0f;
-	_OverlappedSurvivor = nullptr;
-	_OverlappedFuse = nullptr;
+
+	//Setting Survivor Health
 	_SurvivorHealth = _SurvivorMaxHealth;
-	isDowned = false;
-	_isHoldingObject = false;
-	_isHoldingFuse = false;
 	
-	_SurvivorActionCollision->OnComponentBeginOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorCollisionOverlap);
-	_SurvivorActionCollision->OnComponentEndOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorCollisionEndOverlap);
+	_SurvivorActionCollision->OnComponentBeginOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorActionCollisionOverlap);
+	_SurvivorActionCollision->OnComponentEndOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorActionCollisionEndOverlap);
+
+	_Collision->OnComponentBeginOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorCollisionOverlap);
+	_Collision->OnComponentEndOverlap.AddDynamic(this, &ASurvivor_Base::OnSurvivorCollisionEndOverlap);
 	
 }
 
@@ -187,7 +207,21 @@ void ASurvivor_Base::IAJump_Implementation_Implementation(const FInputActionInst
 {
 	if(!isDowned && !_isHoldingObject)
 	{
-		Jump();
+		if(_canVault && !_IsVaulting)
+		{
+			_VaultStartLocation = GetActorLocation();
+			_VaultLocation = _OverlappedVault->GetActorLocation();
+
+			TargetLocation = FVector::DotProduct(_VaultStartLocation - _VaultLocation ,_OverlappedVault->_EndLocationA - _VaultLocation) > 0
+			? _OverlappedVault->_EndLocationB
+			: _OverlappedVault->_EndLocationA;
+			
+			S_Vault();
+		}
+		else if(!_IsVaulting)
+		{
+			Jump();
+		}
 	}
 }
 
@@ -236,9 +270,54 @@ void ASurvivor_Base::IAInteract_Implementation_Implementation(const FInputAction
 
 
 
-//Server Functions
+//Functions
 
 //---------------------------------------------------------------------------------------
+
+//Movement Functions
+
+void ASurvivor_Base::S_Vault_Implementation()
+{
+	Multi_Vault();
+}
+
+void ASurvivor_Base::Multi_Vault_Implementation()
+{
+	if(!_IsVaulting)
+	{
+		_IsVaulting = true;
+		_canVault = false;
+		
+		_CurrentVault = 0.0f;
+
+		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
+		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateVault, 0.02, true);
+	}
+}
+
+void ASurvivor_Base::S_UpdateVault_Implementation()
+{
+	Multi_UpdateVault();
+}
+
+void ASurvivor_Base::Multi_UpdateVault_Implementation()
+{
+	_CurrentVault += (0.02f/_MaxVault);
+
+	FVector NewLocation = FMath::Lerp(_VaultStartLocation, TargetLocation, _CurrentVault);
+	SetActorLocation(NewLocation);
+
+	if(_CurrentVault >= _MaxVault)
+	{
+		//_CurrentVault = 1.0f;
+		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+		_IsVaulting = false;
+		_canVault = true;
+	}
+}
+//---------------------------------------------------------------------------------------
+
 
 //Damage
 void ASurvivor_Base::S_BaseSurvivorDamage_Implementation()
@@ -338,8 +417,6 @@ void ASurvivor_Base::Multi_HealSurvivor_Implementation()
 	}
 }
 
-
-
 void ASurvivor_Base::S_StopHealingSurvivor_Implementation()
 {
 	Multi_StopHealingSurvivor();
@@ -355,7 +432,7 @@ void ASurvivor_Base::Multi_StopHealingSurvivor_Implementation()
 	GetWorldTimerManager().ClearTimer(FTimerHandle);
 }
 
-
+//---------------------------------------------------------------------------------------
 //Survivor Downed
 void ASurvivor_Base::S_SurvivorDowned_Implementation()
 {
@@ -395,15 +472,10 @@ void ASurvivor_Base::Multi_SurvivorRevived_Implementation()
 	_HealTime = 0.0f;
 }
 
+//---------------------------------------------------------------------------------------
 
+//Searching Chests 
 
-
-
-
-
-
-
-//Searching Chests / Fixing Beacons
 void ASurvivor_Base::S_SearchingChestAction_Implementation()
 {
 	Multi_SearchingChestAction();
@@ -424,7 +496,23 @@ void ASurvivor_Base::Multi_StopSearchingChestAction_Implementation()
 	GetWorldTimerManager().ClearTimer(FTimerHandle);
 }
 
+//Searching Chests
+void ASurvivor_Base::S_SearchChests_Implementation()
+{
+	Multi_SearchChests();
+}
 
+void ASurvivor_Base::Multi_SearchChests_Implementation()
+{
+	if(FTimerHandle.IsValid())
+	{
+		//Search Chests
+	}
+}
+
+
+
+//Fixing Beacons
 
 
 void ASurvivor_Base::S_RepairingBeaconAction_Implementation()
@@ -447,7 +535,7 @@ void ASurvivor_Base::Multi_RepairingBeaconAction_Implementation()
 				_OverlappedFuse->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 				_OverlappedFuse->Destroy();
 			}
-			else if(_OverlappedBeacon->_RepairTime < 10.0f)
+			else if(_OverlappedBeacon->_RepairTime < _OverlappedBeacon->_MaxRepairTime)
 			{
 				_CharacterMovement->SetMovementMode(MOVE_None);
 				if(!FTimerHandle.IsValid())
@@ -457,7 +545,7 @@ void ASurvivor_Base::Multi_RepairingBeaconAction_Implementation()
 				
 				}
 			}
-			else if(_OverlappedBeacon->_RepairTime >= 10.0f)
+			else if(_OverlappedBeacon->_RepairTime >= _OverlappedBeacon->_MaxRepairTime)
 			{
 				_OverlappedBeacon->_isCompleted = true;
 				S_StopRepairingBeaconAction();
@@ -484,27 +572,6 @@ void ASurvivor_Base::Multi_StopRepairingBeaconAction_Implementation()
 	GetWorldTimerManager().ClearTimer(FTimerHandle);
 }
 
-
-
-
-
-//Searching Chests
-void ASurvivor_Base::S_SearchChests_Implementation()
-{
-	Multi_SearchChests();
-}
-
-void ASurvivor_Base::Multi_SearchChests_Implementation()
-{
-	if(FTimerHandle.IsValid())
-	{
-		//Search Chests
-	}
-}
-
-
-//Fixing Beacons
-
 void ASurvivor_Base::S_RepairBeacons_Implementation()
 {
 	Multi_RepairBeacons();
@@ -524,7 +591,28 @@ void ASurvivor_Base::Multi_RepairBeacons_Implementation()
 //Collisions
 
 void ASurvivor_Base::OnSurvivorCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AActor* _HitActor = Cast<AActor>(OtherActor);
+
+	if(ATheVault* _Vault = Cast<ATheVault>(_HitActor))
+	{
+		_OverlappedVault = _Vault;
+		_canVault = true;
+	}
+}
+
+void ASurvivor_Base::OnSurvivorCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if(_OverlappedVault)
+	{
+		_canVault = false;
+	}
+}
+
+void ASurvivor_Base::OnSurvivorActionCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                                      UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AActor* _HitActor = Cast<AActor>(OtherActor);
 
@@ -550,7 +638,7 @@ void ASurvivor_Base::OnSurvivorCollisionOverlap(UPrimitiveComponent* OverlappedC
 	}
 }
 
-void ASurvivor_Base::OnSurvivorCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void ASurvivor_Base::OnSurvivorActionCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if(_OverlappedSurvivor)
@@ -568,4 +656,5 @@ void ASurvivor_Base::OnSurvivorCollisionEndOverlap(UPrimitiveComponent* Overlapp
 		_OverlappedBeacon = nullptr;
 	}
 }
+
 

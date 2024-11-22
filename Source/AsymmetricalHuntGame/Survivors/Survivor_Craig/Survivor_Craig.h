@@ -35,6 +35,11 @@ public:
 
 	//Server Functions
 
+	//Vaulting
+	virtual void S_Vault() override;
+	virtual void Multi_Vault() override;
+	virtual void S_UpdateVault() override;
+	virtual void Multi_UpdateVault() override;
 	//Damage
 	virtual void S_BaseSurvivorDamage() override;
 	virtual void Multi_BaseSurvivorDamage() override;

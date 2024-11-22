@@ -72,6 +72,27 @@ void ASurvivor_Craig::IAInteract_Implementation(const FInputActionInstance& Inst
 }
 
 
+//Movement Functions
+void ASurvivor_Craig::S_Vault()
+{
+	Super::S_Vault();
+}
+
+void ASurvivor_Craig::Multi_Vault()
+{
+	Super::Multi_Vault();
+}
+
+void ASurvivor_Craig::S_UpdateVault()
+{
+	Super::S_UpdateVault();
+}
+
+void ASurvivor_Craig::Multi_UpdateVault()
+{
+	Super::Multi_UpdateVault();
+}
+
 //Server functions
 void ASurvivor_Craig::S_BaseSurvivorDamage()
 {

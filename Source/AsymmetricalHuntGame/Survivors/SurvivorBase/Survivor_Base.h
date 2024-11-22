@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "Survivor_Base.generated.h"
 
+class ATheVault;
 class ATheBeacon;
 class ATheFuse;
 class AHunter_Base;
@@ -48,11 +49,14 @@ public:
 	virtual void IAInteract_Implementation(const FInputActionInstance& Instance) override;
 
 	//Server Functions
+
+	//Deal Damage
 	UFUNCTION(Server, Reliable)
 	virtual void S_BaseSurvivorDamage();
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_BaseSurvivorDamage();
 
+	//Downing Survivor
 	UFUNCTION(Server, Reliable)
 	virtual void S_SurvivorDowned();
 	UFUNCTION(NetMulticast, Reliable)
@@ -61,7 +65,12 @@ public:
 	virtual void S_SurvivorRevived();
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_SurvivorRevived();
-	
+
+	//Healing
+	UFUNCTION(Server, Reliable)
+	virtual void S_HealSurvivor();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_HealSurvivor();
 	UFUNCTION(Server, Reliable)
 	virtual void S_HealingSurvivorAction();
 	UFUNCTION(NetMulticast, Reliable)
@@ -71,26 +80,11 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_StopHealingSurvivor();
 
-	//Local Functions
-
-	//Healing
-	UFUNCTION(Server, Reliable)
-	virtual void S_HealSurvivor();
-	UFUNCTION(NetMulticast, Reliable)
-	virtual void Multi_HealSurvivor();
-
 	//Searching Chests
 	UFUNCTION(Server, Reliable)
 	virtual void S_SearchChests();
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_SearchChests();
-
-	//Fixing Beacons
-	UFUNCTION(Server, Reliable)
-	virtual void S_RepairBeacons();
-	UFUNCTION(NetMulticast, Reliable)
-	virtual void Multi_RepairBeacons();
-
 	UFUNCTION(Server, Reliable)
 	virtual void S_SearchingChestAction();
 	UFUNCTION(NetMulticast, Reliable)
@@ -101,8 +95,11 @@ public:
 	virtual void Multi_StopSearchingChestAction();
 	
 
-
-	
+	//Fixing Beacons
+	UFUNCTION(Server, Reliable)
+	virtual void S_RepairBeacons();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_RepairBeacons();
 	UFUNCTION(Server, Reliable)
 	virtual void S_RepairingBeaconAction();
 	UFUNCTION(NetMulticast, Reliable)
@@ -112,12 +109,32 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_StopRepairingBeaconAction();
 
+
+	//Movement Mechanics
+	UFUNCTION(Server, Reliable)
+	virtual void S_Vault();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_Vault();
+	UFUNCTION(Server, Reliable)
+	virtual void S_UpdateVault();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_UpdateVault();
+
+	//Collisions
 	UFUNCTION()
-	virtual void OnSurvivorCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	virtual void OnSurvivorActionCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void OnSurvivorActionCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	virtual void OnSurvivorCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	virtual void OnSurvivorCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCapsuleComponent> _Collision;
@@ -171,6 +188,22 @@ protected:
 	TObjectPtr<ATheBeacon> _OverlappedBeacon;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool _CanRepair;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _canVault;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _IsVaulting;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	float _CurrentVault;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	float _MaxVault;
+	
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	FVector _VaultStartLocation;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	FVector _VaultLocation;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	FVector TargetLocation;
 	
 	UPROPERTY()
 	FTimerHandle FTimerHandle;
@@ -183,6 +216,8 @@ protected:
 	TObjectPtr<ASurvivor_Base> _OverlappedSurvivor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ATheFuse> _OverlappedFuse;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ATheVault> _OverlappedVault;
 
 	//Player Velocity
 	UPROPERTY()
