@@ -28,19 +28,26 @@ public:
 	virtual void IACharacterMove(FVector _InputAxis);
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IACharacterLook(FVector _InputAxis);
-	
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAAction_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void IAStopAction_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void IASprint_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void IAStopSprinting_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
-	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAMelee_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
-	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IABlock_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
-	virtual void IAStopAiming_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAStopBlocking_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAInteract_Implementation(const FInputActionInstance& Instance) override;
 
@@ -56,10 +63,15 @@ public:
 	TObjectPtr<UCameraComponent> _Camera;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCharacterMovementComponent> _CharacterMovement;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UArrowComponent> _MeleeLocation;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCapsuleComponent> _HunterActionCollision;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<AActor*> _IgnoredActors;
+	
 	//Public variables
 
 
@@ -82,7 +94,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float _CrouchSpeed;
 	UPROPERTY(EditAnywhere)
-	float _AimingSpeed;
+	float _SprintSpeed;
+	UPROPERTY(EditAnywhere)
+	float _BlockSpeed;
 
 	UPROPERTY()
 	FVector _StandScale;
@@ -102,8 +116,6 @@ protected:
 
 	UPROPERTY()
 	FVector _StartLocation;
-	UPROPERTY()
-	FVector _EndLocation;
 	UPROPERTY()
 	int _FiringDistance;
 

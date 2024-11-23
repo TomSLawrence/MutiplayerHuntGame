@@ -32,9 +32,9 @@ public:
 	virtual void IACrouch_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAStand_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAJump_Implementation(const FInputActionInstance& Instance) override;
-	virtual void IAShoot_Implementation(const FInputActionInstance& Instance) override;
-	virtual void IAAim_Implementation(const FInputActionInstance& Instance) override;
-	virtual void IAStopAiming_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAMelee_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IABlock_Implementation(const FInputActionInstance& Instance) override;
+	virtual void IAStopBlocking_Implementation(const FInputActionInstance& Instance) override;
 	virtual void IAInteract_Implementation(const FInputActionInstance& Instance) override;
 
 	virtual void OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

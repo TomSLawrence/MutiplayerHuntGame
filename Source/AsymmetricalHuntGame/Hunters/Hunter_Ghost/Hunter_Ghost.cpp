@@ -55,19 +55,19 @@ void AHunter_Ghost::IAJump_Implementation(const FInputActionInstance& Instance)
 	Super::IAJump_Implementation(Instance);
 }
 
-void AHunter_Ghost::IAShoot_Implementation(const FInputActionInstance& Instance)
+void AHunter_Ghost::IAMelee_Implementation(const FInputActionInstance& Instance)
 {
-	Super::IAShoot_Implementation(Instance);
+	Super::IAMelee_Implementation(Instance);
 }
 
-void AHunter_Ghost::IAAim_Implementation(const FInputActionInstance& Instance)
+void AHunter_Ghost::IABlock_Implementation(const FInputActionInstance& Instance)
 {
-	Super::IAAim_Implementation(Instance);
+	Super::IABlock_Implementation(Instance);
 }
 
-void AHunter_Ghost::IAStopAiming_Implementation(const FInputActionInstance& Instance)
+void AHunter_Ghost::IAStopBlocking_Implementation(const FInputActionInstance& Instance)
 {
-	Super::IAStopAiming_Implementation(Instance);
+	Super::IAStopBlocking_Implementation(Instance);
 }
 
 void AHunter_Ghost::IAInteract_Implementation(const FInputActionInstance& Instance)

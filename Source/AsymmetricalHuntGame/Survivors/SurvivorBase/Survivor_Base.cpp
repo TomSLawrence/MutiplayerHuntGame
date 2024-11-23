@@ -280,7 +280,6 @@ void ASurvivor_Base::IAInteract_Implementation_Implementation(const FInputAction
 			{
 				_OverlappedFuse->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 				_isHoldingFuse = false;
-				canHeal = true;
 			}
 		}
 		

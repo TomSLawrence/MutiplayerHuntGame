@@ -209,7 +209,7 @@ void AThePlayerController::ShootInput(const FInputActionInstance& Instance)
 {
 	if(this->IsLocalController() && HasAuthority())
 	{
-		Execute_IAShoot(GetCharacter(), Instance);
+		Execute_IAMelee(GetCharacter(), Instance);
 	}
 	else
 	{
@@ -221,7 +221,7 @@ void AThePlayerController::AimInput(const FInputActionInstance& Instance)
 {
 	if(this->IsLocalController() && HasAuthority())
 	{
-		Execute_IAAim(GetCharacter(), Instance);
+		Execute_IABlock(GetCharacter(), Instance);
 	}
 	else
 	{
@@ -233,7 +233,7 @@ void AThePlayerController::StopAiming(const FInputActionInstance& Instance)
 {
 	if(this->IsLocalController() && HasAuthority())
 	{
-		Execute_IAStopAiming(GetCharacter(), Instance);
+		Execute_IAStopBlocking(GetCharacter(), Instance);
 	}
 	else
 	{
@@ -314,17 +314,17 @@ void AThePlayerController::S_JumpInput_Implementation(const FInputActionInstance
 
 void AThePlayerController::S_ShootInput_Implementation(const FInputActionInstance& Instance)
 {
-	Execute_IAShoot(GetCharacter(), Instance);
+	Execute_IAMelee(GetCharacter(), Instance);
 }
 
 void AThePlayerController::S_AimInput_Implementation(const FInputActionInstance& Instance)
 {
-	Execute_IAAim(GetCharacter(), Instance);
+	Execute_IABlock(GetCharacter(), Instance);
 }
 
 void AThePlayerController::S_StopAiming_Implementation(const FInputActionInstance& Instance)
 {
-	Execute_IAStopAiming(GetCharacter(), Instance);
+	Execute_IAStopBlocking(GetCharacter(), Instance);
 }
 
 void AThePlayerController::S_Interact_Implementation(const FInputActionInstance& Instance)

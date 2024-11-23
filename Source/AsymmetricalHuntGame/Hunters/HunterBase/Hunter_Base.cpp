@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/ArrowComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogHunterBase, Display, All);
@@ -30,6 +31,8 @@ AHunter_Base::AHunter_Base()
 
 	_PickupLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Pickup Location"));
 	_PickupLocation->SetupAttachment(_Collision);
+	_MeleeLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Melee Location"));
+	_MeleeLocation->SetupAttachment(_Collision);
 
 	_WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon_Mesh"));
 	_WeaponMesh->SetupAttachment(_Camera);
@@ -60,12 +63,14 @@ void AHunter_Base::BeginPlay()
 
 	_WalkSpeed = 300.0f;
 	_CrouchSpeed = 150.0f;
-	_AimingSpeed = 200.0f;
+	_BlockSpeed = 200.0f;
 	_CarryingSpeed = 200.0f;
 	
 	isAiming = false;
 	_SurvivorInteract = false;
 	_isHoldingSurvivor = false;
+
+	_IgnoredActors.Add(this);
 
 	_HunterActionCollision->OnComponentBeginOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionOverlap);
 	_HunterActionCollision->OnComponentEndOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionEndOverlap);
@@ -121,6 +126,27 @@ void AHunter_Base::IAAction_Implementation_Implementation(const FInputActionInst
 	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("FIRE!"));
 }
 
+void AHunter_Base::IAStopAction_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	//Stop Action
+}
+
+void AHunter_Base::IASprint_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	if(!_isHoldingSurvivor)
+	{
+		_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
+	}
+}
+
+void AHunter_Base::IAStopSprinting_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	if(!_isHoldingSurvivor)
+	{
+		_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+	}
+}
+
 void AHunter_Base::IACrouch_Implementation_Implementation(const FInputActionInstance& Instance)
 {
 	Crouch();
@@ -135,21 +161,19 @@ void AHunter_Base::IAStand_Implementation_Implementation(const FInputActionInsta
 	
 }
 
-void AHunter_Base::IAShoot_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAMelee_Implementation_Implementation(const FInputActionInstance& Instance)
 {
 	//Shooting Function called on individual hunters
 
 	if(HasAuthority())
 	{
-		_StartLocation = _Camera->GetComponentLocation();
-		_EndLocation = _StartLocation + (_Camera->GetForwardVector() * _FiringDistance);
+		_StartLocation = _MeleeLocation->GetComponentLocation();
 
 		FHitResult HitResult;
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(this);
 
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, _StartLocation, _EndLocation,
-			ECC_GameTraceChannel4, QueryParams);
+		bool bHit = UKismetSystemLibrary::SphereTraceSingle(GetWorld(), _StartLocation, _StartLocation, 30.0f, 
+			TraceTypeQuery3, false, _IgnoredActors, EDrawDebugTrace::ForDuration, HitResult, true,
+			FLinearColor::Red, FLinearColor::Green, 1.0f);
 
 		
 		if(bHit)
@@ -173,15 +197,15 @@ void AHunter_Base::IAShoot_Implementation_Implementation(const FInputActionInsta
 	
 }
 
-void AHunter_Base::IAAim_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IABlock_Implementation_Implementation(const FInputActionInstance& Instance)
 {
 	isAiming = true;
 	_Camera->SetFieldOfView(30.0f);
 	_WeaponMesh->SetRelativeLocation(_RaisedWeaponLocation);
-	_CharacterMovement->MaxWalkSpeed = _AimingSpeed;
+	_CharacterMovement->MaxWalkSpeed = _BlockSpeed;
 }
 
-void AHunter_Base::IAStopAiming_Implementation_Implementation(const FInputActionInstance& Instance)
+void AHunter_Base::IAStopBlocking_Implementation_Implementation(const FInputActionInstance& Instance)
 {
 	isAiming = false;
 	_Camera->SetFieldOfView(90.0f);
@@ -212,6 +236,12 @@ void AHunter_Base::IAInteract_Implementation_Implementation(const FInputActionIn
 		_isHoldingSurvivor = false;
 		_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	}
+}
+
+
+void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	
 }
 
 
