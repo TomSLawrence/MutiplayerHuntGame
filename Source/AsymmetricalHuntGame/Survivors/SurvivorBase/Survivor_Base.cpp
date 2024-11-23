@@ -2,6 +2,7 @@
 
 #include "AsymmetricalHuntGame/Hunters/HunterBase/Hunter_Base.h"
 #include "AsymmetricalHuntGame/Interactables/TheBeacon.h"
+#include "AsymmetricalHuntGame/Interactables/TheClimb.h"
 #include "AsymmetricalHuntGame/Interactables/TheFuse.h"
 #include "AsymmetricalHuntGame/Interactables/TheVault.h"
 #include "Components/CapsuleComponent.h"
@@ -65,12 +66,17 @@ ASurvivor_Base::ASurvivor_Base()
 	_OverlappedSurvivor = nullptr;
 	_OverlappedFuse = nullptr;
 	_OverlappedVault = nullptr;
+	_OverlappedClimb = nullptr;
 	_isHoldingObject = false;
 	_isHoldingFuse = false;
 	
 	_canVault = false;
 	_IsVaulting = false;
 	_MaxVault = 1.0f;
+
+	_canClimb = false;
+	_IsClimbing = false;
+	_MaxClimb = 1.0f;
 
 
 }
@@ -82,11 +88,18 @@ void ASurvivor_Base::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ASurvivor_Base, canHeal);
 	DOREPLIFETIME(ASurvivor_Base, _SurvivorHealth);
 	DOREPLIFETIME(ASurvivor_Base, isDowned);
+	
 	DOREPLIFETIME(ASurvivor_Base, _VaultLocation);
-	DOREPLIFETIME(ASurvivor_Base, TargetLocation);
+	DOREPLIFETIME(ASurvivor_Base, TargetVaultLocation);
 	DOREPLIFETIME(ASurvivor_Base, _CurrentVault);
 	DOREPLIFETIME(ASurvivor_Base, _VaultStartLocation);
 	DOREPLIFETIME(ASurvivor_Base, _MaxVault);
+	
+	DOREPLIFETIME(ASurvivor_Base, _CurrentClimb);
+	DOREPLIFETIME(ASurvivor_Base, _MaxClimb);
+	DOREPLIFETIME(ASurvivor_Base, _ClimbStartLocation);
+	DOREPLIFETIME(ASurvivor_Base, _ClimbLocation);
+	DOREPLIFETIME(ASurvivor_Base, TargetClimbLocation);
 	
 }
 
@@ -212,13 +225,19 @@ void ASurvivor_Base::IAJump_Implementation_Implementation(const FInputActionInst
 			_VaultStartLocation = GetActorLocation();
 			_VaultLocation = _OverlappedVault->GetActorLocation();
 
-			TargetLocation = FVector::DotProduct(_VaultStartLocation - _VaultLocation ,_OverlappedVault->_EndLocationA - _VaultLocation) > 0
+			TargetVaultLocation = FVector::DotProduct(_VaultStartLocation - _VaultLocation ,_OverlappedVault->_EndLocationA - _VaultLocation) > 0
 			? _OverlappedVault->_EndLocationB
 			: _OverlappedVault->_EndLocationA;
 			
 			S_Vault();
 		}
-		else if(!_IsVaulting)
+		else if(_canClimb && !_IsClimbing)
+		{
+			_ClimbStartLocation = GetActorLocation();
+			
+			S_Climb();
+		}
+		else if(!_IsVaulting && !_IsClimbing)
 		{
 			Jump();
 		}
@@ -276,6 +295,8 @@ void ASurvivor_Base::IAInteract_Implementation_Implementation(const FInputAction
 
 //Movement Functions
 
+
+//Vaulting
 void ASurvivor_Base::S_Vault_Implementation()
 {
 	Multi_Vault();
@@ -304,18 +325,63 @@ void ASurvivor_Base::Multi_UpdateVault_Implementation()
 {
 	_CurrentVault += (0.02f/_MaxVault);
 
-	FVector NewLocation = FMath::Lerp(_VaultStartLocation, TargetLocation, _CurrentVault);
+	FVector NewLocation = FMath::Lerp(_VaultStartLocation, TargetVaultLocation, _CurrentVault);
 	SetActorLocation(NewLocation);
 
 	if(_CurrentVault >= _MaxVault)
 	{
-		//_CurrentVault = 1.0f;
 		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
 		_IsVaulting = false;
 		_canVault = true;
 	}
 }
+
+//---------------------------------------------------------------------------------------
+
+//Climbing
+
+void ASurvivor_Base::S_Climb_Implementation()
+{
+	Multi_Climb();
+}
+
+void ASurvivor_Base::Multi_Climb_Implementation()
+{
+	if(!_IsClimbing)
+	{
+		_IsClimbing = true;
+		_canClimb = false;
+		
+		_CurrentClimb = 0.0f;
+
+		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
+		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateClimb, 0.02, true);
+	}
+}
+
+void ASurvivor_Base::S_UpdateClimb_Implementation()
+{
+	Multi_UpdateClimb();
+}
+
+void ASurvivor_Base::Multi_UpdateClimb_Implementation()
+{
+	_CurrentClimb += (0.02f/_MaxClimb);
+
+	FVector NewLocation = FMath::Lerp(_ClimbStartLocation, _OverlappedClimb->_EndLocationA, _CurrentClimb);
+	SetActorLocation(NewLocation);
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
+
+	if(_CurrentClimb >= _MaxClimb)
+	{
+		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+		_IsClimbing = false;
+		_canClimb = true;
+	}
+}
+
 //---------------------------------------------------------------------------------------
 
 
@@ -600,6 +666,11 @@ void ASurvivor_Base::OnSurvivorCollisionOverlap(UPrimitiveComponent* OverlappedC
 		_OverlappedVault = _Vault;
 		_canVault = true;
 	}
+	else if(ATheClimb* _ClimbingWall = Cast<ATheClimb>(_HitActor))
+	{
+		_OverlappedClimb = _ClimbingWall;
+		_canClimb = true;
+	}
 }
 
 void ASurvivor_Base::OnSurvivorCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -608,6 +679,12 @@ void ASurvivor_Base::OnSurvivorCollisionEndOverlap(UPrimitiveComponent* Overlapp
 	if(_OverlappedVault)
 	{
 		_canVault = false;
+		_OverlappedVault = nullptr;
+	}
+	else if(_OverlappedClimb)
+	{
+		_canClimb = false;
+		_OverlappedClimb = nullptr;
 	}
 }
 

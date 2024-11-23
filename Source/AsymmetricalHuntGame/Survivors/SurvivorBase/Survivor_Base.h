@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "Survivor_Base.generated.h"
 
+class ATheClimb;
 class ATheVault;
 class ATheBeacon;
 class ATheFuse;
@@ -120,6 +121,15 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_UpdateVault();
 
+	UFUNCTION(Server, Reliable)
+	virtual void S_Climb();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_Climb();
+	UFUNCTION(Server, Reliable)
+	virtual void S_UpdateClimb();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_UpdateClimb();
+
 	//Collisions
 	UFUNCTION()
 	virtual void OnSurvivorActionCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -203,7 +213,24 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	FVector _VaultLocation;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	FVector TargetLocation;
+	FVector TargetVaultLocation;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _canClimb;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _IsClimbing;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	float _CurrentClimb;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	float _MaxClimb;
+	
+
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	FVector _ClimbStartLocation;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	FVector _ClimbLocation;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	FVector TargetClimbLocation;
 	
 	UPROPERTY()
 	FTimerHandle FTimerHandle;
@@ -218,6 +245,8 @@ protected:
 	TObjectPtr<ATheFuse> _OverlappedFuse;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ATheVault> _OverlappedVault;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ATheClimb> _OverlappedClimb;
 
 	//Player Velocity
 	UPROPERTY()
