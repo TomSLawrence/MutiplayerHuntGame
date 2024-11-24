@@ -57,6 +57,7 @@ ASurvivor_Base::ASurvivor_Base()
 	//Initialising Variables
 	
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+	_IsSprinting = false;
 	
 	_SurvivorMaxHealth = 2.0f;
 	canHeal = false;
@@ -67,7 +68,8 @@ ASurvivor_Base::ASurvivor_Base()
 	_OverlappedFuse = nullptr;
 	_OverlappedVault = nullptr;
 	_OverlappedClimb = nullptr;
-	_isHoldingObject = false;
+	
+	_isHoldingSurvivor = false;
 	_isHoldingFuse = false;
 	
 	_canVault = false;
@@ -77,6 +79,10 @@ ASurvivor_Base::ASurvivor_Base()
 	_canClimb = false;
 	_IsClimbing = false;
 	_MaxClimb = 1.0f;
+
+	_canSlide = false;
+	_IsSliding = false;
+	_MaxSlide = 1.0f;
 
 
 }
@@ -100,6 +106,11 @@ void ASurvivor_Base::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ASurvivor_Base, _ClimbStartLocation);
 	DOREPLIFETIME(ASurvivor_Base, _ClimbLocation);
 	DOREPLIFETIME(ASurvivor_Base, TargetClimbLocation);
+
+	DOREPLIFETIME(ASurvivor_Base, _CurrentSlide);
+	DOREPLIFETIME(ASurvivor_Base, _MaxSlide);
+	DOREPLIFETIME(ASurvivor_Base, _SlideStartLocation);
+	DOREPLIFETIME(ASurvivor_Base, _SlideEndLocation);
 	
 }
 
@@ -155,7 +166,7 @@ void ASurvivor_Base::IAAction_Implementation_Implementation(const FInputActionIn
 {
 	//Any actions go here
 
-	if(!isDowned && !_isHoldingObject)
+	if(!isDowned && !_isHoldingSurvivor)
 	{
 		if(canHeal && !_isHoldingFuse)
 		{
@@ -171,7 +182,7 @@ void ASurvivor_Base::IAAction_Implementation_Implementation(const FInputActionIn
 
 void ASurvivor_Base::IAStopAction_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	if(!isDowned && !_isHoldingObject)
+	if(!isDowned && !_isHoldingSurvivor)
 	{
 		if(canHeal)
 		{
@@ -186,39 +197,60 @@ void ASurvivor_Base::IAStopAction_Implementation_Implementation(const FInputActi
 
 void ASurvivor_Base::IASprint_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	if(!isDowned && !_isHoldingObject)
+	if(!isDowned && !_isHoldingSurvivor)
 	{
-		_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
+		if(!_IsSprinting)
+		{
+			_IsSprinting = true;
+			_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
+		}
+		else
+		{
+			_IsSprinting = false;
+			_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+		}
 	}
 }
 
 void ASurvivor_Base::IAStopSprinting_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	if(!isDowned && !_isHoldingObject)
+	if(!isDowned && !_isHoldingSurvivor)
 	{
-		_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	}
 }
 
 void ASurvivor_Base::IACrouch_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	if(!isDowned && !_isHoldingObject)
+	if(!isDowned && !_isHoldingSurvivor)
 	{
-		Crouch();
+		if(!_IsSliding && _IsSprinting && _canSlide)
+		{
+			_SlideStartLocation = GetActorLocation();
+			_SlideEndLocation = GetActorLocation() + (_CharacterMovement->Velocity.GetSafeNormal() * 500.0f);
+			_Collision->SetCapsuleHalfHeight(40.0f);
+			_CurrentSlide = 0.0f;
+			
+			S_Slide();
+		}
+		else
+		{
+			Crouch();
+		}
 	}
 }
 
 void ASurvivor_Base::IAStand_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	if(!isDowned && !_isHoldingObject)
+	if(!isDowned && !_isHoldingSurvivor)
 	{
 		UnCrouch();
+		_canSlide = true;
 	}
 }
 
 void ASurvivor_Base::IAJump_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	if(!isDowned && !_isHoldingObject)
+	if(!isDowned && !_isHoldingSurvivor)
 	{
 		if(_canVault && !_IsVaulting)
 		{
@@ -252,25 +284,25 @@ void ASurvivor_Base::IAInteract_Implementation_Implementation(const FInputAction
 		{
 			if(_OverlappedSurvivor->isDowned)
 			{
-				if(!_isHoldingObject || !_isHoldingFuse)
+				if(!_isHoldingSurvivor || !_isHoldingFuse)
 				{
 					_OverlappedSurvivor->_CharacterMovement->SetMovementMode(MOVE_None);
 					_OverlappedSurvivor->AttachToComponent(_PickupLocation, FAttachmentTransformRules::SnapToTargetIncludingScale);
-					_isHoldingObject = true;
+					_isHoldingSurvivor = true;
 					canHeal = false;
 				}
 				else
 				{
 					_OverlappedSurvivor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 					_OverlappedSurvivor->_CharacterMovement->SetMovementMode(MOVE_Walking);
-					_isHoldingObject = false;
+					_isHoldingSurvivor = false;
 					canHeal = true;
 				}
 			}
 		}
 		if(_OverlappedFuse)
 		{
-			if(!_isHoldingObject && !_isHoldingFuse)
+			if(!_isHoldingSurvivor && !_isHoldingFuse)
 			{
 				_OverlappedFuse->AttachToComponent(_PickupLocation, FAttachmentTransformRules::SnapToTargetIncludingScale);
 				_isHoldingFuse = true;
@@ -305,6 +337,8 @@ void ASurvivor_Base::Multi_Vault_Implementation()
 {
 	if(!_IsVaulting)
 	{
+		_IsSliding = false;
+		_IsClimbing = false;
 		_IsVaulting = true;
 		_canVault = false;
 		
@@ -326,6 +360,7 @@ void ASurvivor_Base::Multi_UpdateVault_Implementation()
 
 	FVector NewLocation = FMath::Lerp(_VaultStartLocation, TargetVaultLocation, _CurrentVault);
 	SetActorLocation(NewLocation);
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Vaulting!"));
 
 	if(_CurrentVault >= _MaxVault)
 	{
@@ -349,6 +384,8 @@ void ASurvivor_Base::Multi_Climb_Implementation()
 {
 	if(!_IsClimbing)
 	{
+		_IsSliding = false;
+		_IsVaulting = false;
 		_IsClimbing = true;
 		_canClimb = false;
 		
@@ -383,7 +420,47 @@ void ASurvivor_Base::Multi_UpdateClimb_Implementation()
 
 //---------------------------------------------------------------------------------------
 
+//Sliding
 
+void ASurvivor_Base::S_Slide_Implementation()
+{
+	Multi_Slide();
+}
+
+void ASurvivor_Base::Multi_Slide_Implementation()
+{
+	if(!_IsSliding)
+	{
+		_IsClimbing = false;
+		_IsVaulting = false;
+		_canSlide = false;
+		
+		_IsSliding = true;
+		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateSlide, 0.02, true);
+	}
+}
+
+void ASurvivor_Base::S_UpdateSlide_Implementation()
+{
+	Multi_UpdateSlide();
+}
+
+void ASurvivor_Base::Multi_UpdateSlide_Implementation()
+{
+	_CurrentSlide += (0.02f/_MaxSlide);
+	
+	FVector NewLocation = FMath::Lerp(_SlideStartLocation, _SlideEndLocation, _CurrentSlide);
+	SetActorLocation(NewLocation);
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Sliding!"));
+
+	if(_CurrentSlide >= _MaxSlide)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+		_IsSliding = false;
+	}
+}
+
+//---------------------------------------------------------------------------------------
 //Damage
 void ASurvivor_Base::S_BaseSurvivorDamage_Implementation()
 {

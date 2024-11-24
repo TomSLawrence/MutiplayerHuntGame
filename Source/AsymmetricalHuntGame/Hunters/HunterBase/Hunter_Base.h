@@ -9,6 +9,8 @@
 
 class ASurvivor_Base;
 class AProjectile_Base;
+class ATheVault;
+class ATheClimb;
 class AMyTree;
 class UCapsuleComponent;
 class UCameraComponent;
@@ -51,6 +53,25 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAInteract_Implementation(const FInputActionInstance& Instance) override;
 
+	
+	//Movement Mechanics
+	UFUNCTION(Server, Reliable)
+	virtual void S_Vault();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_Vault();
+	UFUNCTION(Server, Reliable)
+	virtual void S_UpdateVault();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_UpdateVault();
+
+	UFUNCTION(Server, Reliable)
+	virtual void S_Climb();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_Climb();
+	UFUNCTION(Server, Reliable)
+	virtual void S_UpdateClimb();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_UpdateClimb();
 
 	//Player Components
 	UPROPERTY(EditAnywhere)
@@ -80,6 +101,13 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
+	virtual void OnHunterActionCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void OnHunterActionCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
 	virtual void OnHunterCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
@@ -98,21 +126,46 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float _BlockSpeed;
 
-	UPROPERTY()
-	FVector _StandScale;
-	UPROPERTY()
-	FVector _CrouchScale;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _canVault;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _IsVaulting;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _CurrentVault;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _MaxVault;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector _VaultStartLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector _VaultLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TargetVaultLocation;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _canClimb;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _IsClimbing;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _CurrentClimb;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _MaxClimb;
+	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector _ClimbStartLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector _ClimbLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TargetClimbLocation;
+
+	UPROPERTY()
+	FTimerHandle FTimerHandle;
+	
 	UPROPERTY()
 	FVector _RaisedWeaponLocation;
 	UPROPERTY()
 	FVector _LoweredWeaponLocation;
-
-	//Aiming Sensitivity
-	UPROPERTY(VisibleAnywhere)
-	bool isAiming;
-	UPROPERTY(EditAnywhere)
-	float _AimingSensitivity;
 
 	UPROPERTY()
 	FVector _StartLocation;
@@ -124,6 +177,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ASurvivor_Base> _OverlappedSurvivor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ATheClimb> _OverlappedClimb;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ATheVault> _OverlappedVault;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool _SurvivorInteract;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

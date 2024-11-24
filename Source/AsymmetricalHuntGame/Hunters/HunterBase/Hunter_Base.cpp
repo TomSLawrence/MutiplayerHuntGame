@@ -1,5 +1,7 @@
 ﻿#include "Hunter_Base.h"
 
+#include "AsymmetricalHuntGame/Interactables/TheClimb.h"
+#include "AsymmetricalHuntGame/Interactables/TheVault.h"
 #include "AsymmetricalHuntGame/Survivors/SurvivorBase/Survivor_Base.h"
 #include "AsymmetricalHuntGame/Map/Assets/MyTree.h"
 #include "Components/CapsuleComponent.h"
@@ -36,7 +38,10 @@ AHunter_Base::AHunter_Base()
 
 	_WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon_Mesh"));
 	_WeaponMesh->SetupAttachment(_Camera);
-	
+
+	_OverlappedClimb = nullptr;
+	_OverlappedSurvivor = nullptr;
+	_OverlappedVault = nullptr;
 	
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
@@ -53,20 +58,23 @@ AHunter_Base::AHunter_Base()
 void AHunter_Base::BeginPlay()
 {
 	Super::BeginPlay();
-
-	_CrouchScale = FVector(1.5f, 1.5f, 1.5f);
-	_StandScale = FVector(2.0f, 2.0f, 2.0f);
 	
 	_RaisedWeaponLocation = FVector(110.0f, 0.0f, -40.0f);
 	_LoweredWeaponLocation = FVector(60.f, 80.f, -40.f);
-	_FiringDistance = 10000;
 
 	_WalkSpeed = 300.0f;
 	_CrouchSpeed = 150.0f;
 	_BlockSpeed = 200.0f;
 	_CarryingSpeed = 200.0f;
+
+	_canVault = false;
+	_IsVaulting = false;
+	_MaxVault = 1.0f;
+
+	_canClimb = false;
+	_IsClimbing = false;
+	_MaxClimb = 1.0f;
 	
-	isAiming = false;
 	_SurvivorInteract = false;
 	_isHoldingSurvivor = false;
 
@@ -74,6 +82,9 @@ void AHunter_Base::BeginPlay()
 
 	_HunterActionCollision->OnComponentBeginOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionOverlap);
 	_HunterActionCollision->OnComponentEndOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionEndOverlap);
+
+	_Collision->OnComponentBeginOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionOverlap);
+	_Collision->OnComponentEndOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionEndOverlap);
 }
 
 void AHunter_Base::IACharacterMove_Implementation(FVector _InputAxis)
@@ -97,25 +108,11 @@ void AHunter_Base::IACharacterLook_Implementation(FVector _InputAxis)
 	{
 		if(_InputAxis.Y != 0.0f)
 		{
-			if(isAiming)
-			{
-				AddControllerPitchInput(_InputAxis.Y / _AimingSensitivity);
-			}
-			else
-			{
-				AddControllerPitchInput(_InputAxis.Y);
-			}
+			AddControllerPitchInput(_InputAxis.Y);
 		}
 		if(_InputAxis.X != 0.0f)
 		{
-			if(isAiming)
-			{
-				AddControllerYawInput(_InputAxis.X / _AimingSensitivity);
-			}
-			else
-			{
-				AddControllerYawInput(_InputAxis.X);
-			}
+			AddControllerYawInput(_InputAxis.X);
 		}
 	}
 }
@@ -150,14 +147,12 @@ void AHunter_Base::IAStopSprinting_Implementation_Implementation(const FInputAct
 void AHunter_Base::IACrouch_Implementation_Implementation(const FInputActionInstance& Instance)
 {
 	Crouch();
-	_CharacterMesh->SetWorldScale3D(_CrouchScale);
 }
 
 void AHunter_Base::IAStand_Implementation_Implementation(const FInputActionInstance& Instance)
 {
 	
 	UnCrouch();
-	_CharacterMesh->SetWorldScale3D(_StandScale);
 	
 }
 
@@ -199,7 +194,6 @@ void AHunter_Base::IAMelee_Implementation_Implementation(const FInputActionInsta
 
 void AHunter_Base::IABlock_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	isAiming = true;
 	_Camera->SetFieldOfView(30.0f);
 	_WeaponMesh->SetRelativeLocation(_RaisedWeaponLocation);
 	_CharacterMovement->MaxWalkSpeed = _BlockSpeed;
@@ -207,10 +201,37 @@ void AHunter_Base::IABlock_Implementation_Implementation(const FInputActionInsta
 
 void AHunter_Base::IAStopBlocking_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	isAiming = false;
 	_Camera->SetFieldOfView(90.0f);
 	_WeaponMesh->SetRelativeLocation(_LoweredWeaponLocation);
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+}
+
+void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstance& Instance)
+{
+	if(!_isHoldingSurvivor)
+	{
+		if(_canVault && !_IsVaulting)
+		{
+			_VaultStartLocation = GetActorLocation();
+			_VaultLocation = _OverlappedVault->GetActorLocation();
+
+			TargetVaultLocation = FVector::DotProduct(_VaultStartLocation - _VaultLocation ,_OverlappedVault->_EndLocationA - _VaultLocation) > 0
+			? _OverlappedVault->_EndLocationB
+			: _OverlappedVault->_EndLocationA;
+			
+			S_Vault();
+		}
+		else if(_canClimb && !_IsClimbing)
+		{
+			_ClimbStartLocation = GetActorLocation();
+			
+			S_Climb();
+		}
+		else if(!_IsVaulting && !_IsClimbing)
+		{
+			Jump();
+		}
+	}
 }
 
 void AHunter_Base::IAInteract_Implementation_Implementation(const FInputActionInstance& Instance)
@@ -238,17 +259,91 @@ void AHunter_Base::IAInteract_Implementation_Implementation(const FInputActionIn
 	}
 }
 
-
-void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstance& Instance)
+//Vaulting
+void AHunter_Base::S_Vault_Implementation()
 {
-	
+	Multi_Vault();
+}
+
+void AHunter_Base::Multi_Vault_Implementation()
+{
+	if(!_IsVaulting)
+	{
+		_IsVaulting = true;
+		_canVault = false;
+		
+		_CurrentVault = 0.0f;
+
+		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
+		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &AHunter_Base::S_UpdateVault, 0.02, true);
+	}
+}
+
+void AHunter_Base::S_UpdateVault_Implementation()
+{
+	Multi_UpdateVault();
+}
+
+void AHunter_Base::Multi_UpdateVault_Implementation()
+{
+		_CurrentVault += (0.02f/_MaxVault);
+
+		FVector NewLocation = FMath::Lerp(_VaultStartLocation, TargetVaultLocation, _CurrentVault);
+		SetActorLocation(NewLocation);
+
+		if(_CurrentVault >= _MaxVault)
+		{
+			_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+			GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+			_IsVaulting = false;
+			_canVault = true;
+		}
 }
 
 
+//Climbing
+void AHunter_Base::S_Climb_Implementation()
+{
+	Multi_Climb();
+}
 
+void AHunter_Base::Multi_Climb_Implementation()
+{
+	if(!_IsClimbing)
+	{
+		_IsClimbing = true;
+		_canClimb = false;
+		
+		_CurrentClimb = 0.0f;
 
+		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
+		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &AHunter_Base::S_UpdateClimb, 0.02, true);
+	}
+}
 
-void AHunter_Base::OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AHunter_Base::S_UpdateClimb_Implementation()
+{
+	Multi_UpdateClimb();
+}
+
+void AHunter_Base::Multi_UpdateClimb_Implementation()
+{
+	_CurrentClimb += (0.02f/_MaxClimb);
+
+	FVector NewLocation = FMath::Lerp(_ClimbStartLocation, _OverlappedClimb->_EndLocationA, _CurrentClimb);
+	SetActorLocation(NewLocation);
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
+
+	if(_CurrentClimb >= _MaxClimb)
+	{
+		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+		_IsClimbing = false;
+		_canClimb = true;
+	}
+}
+
+void AHunter_Base::OnHunterActionCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ASurvivor_Base* _HitSurvivor = Cast<ASurvivor_Base>(OtherActor);
@@ -256,13 +351,45 @@ void AHunter_Base::OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedCompo
 	_SurvivorInteract = true;
 }
 
-void AHunter_Base::OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AHunter_Base::OnHunterActionCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if(_OverlappedSurvivor)
 	{
 		_SurvivorInteract = false;
 		_OverlappedSurvivor = nullptr;
+	}
+}
+
+void AHunter_Base::OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AActor* _HitActor = Cast<AActor>(OtherActor);
+
+	if(ATheVault* _Vault = Cast<ATheVault>(_HitActor))
+	{
+		_OverlappedVault = _Vault;
+		_canVault = true;
+	}
+	else if(ATheClimb* _ClimbingWall = Cast<ATheClimb>(_HitActor))
+	{
+		_OverlappedClimb = _ClimbingWall;
+		_canClimb = true;
+	}
+}
+
+void AHunter_Base::OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if(_OverlappedVault)
+	{
+		_canVault = false;
+		_OverlappedVault = nullptr;
+	}
+	else if(_OverlappedClimb)
+	{
+		_canClimb = false;
+		_OverlappedClimb = nullptr;
 	}
 }
 

@@ -130,6 +130,15 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_UpdateClimb();
 
+	UFUNCTION(Server, Reliable)
+	virtual void S_Slide();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_Slide();
+	UFUNCTION(Server, Reliable)
+	virtual void S_UpdateSlide();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_UpdateSlide();
+
 	//Collisions
 	UFUNCTION()
 	virtual void OnSurvivorActionCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -186,6 +195,8 @@ protected:
 	float _WalkSpeed;
 	UPROPERTY(EditAnywhere)
 	float _CrouchSpeed;
+	UPROPERTY(EditAnywhere)
+	bool _IsSprinting;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	int _SurvivorHealth;
@@ -231,13 +242,27 @@ protected:
 	FVector _ClimbLocation;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	FVector TargetClimbLocation;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _canSlide;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _IsSliding;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	float _CurrentSlide;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	float _MaxSlide;
+	
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	FVector _SlideStartLocation;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	FVector _SlideEndLocation;
 	
 	UPROPERTY()
 	FTimerHandle FTimerHandle;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	bool canHeal;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	bool _isHoldingObject;
+	bool _isHoldingSurvivor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ASurvivor_Base> _OverlappedSurvivor;
