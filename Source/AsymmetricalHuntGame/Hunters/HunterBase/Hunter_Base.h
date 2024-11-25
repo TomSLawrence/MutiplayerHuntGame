@@ -55,23 +55,25 @@ public:
 
 	
 	//Movement Mechanics
-	UFUNCTION(Server, Reliable)
-	virtual void S_Vault();
+
+	//Vaulting
+
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_Vault();
-	UFUNCTION(Server, Reliable)
-	virtual void S_UpdateVault();
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION()
 	virtual void Multi_UpdateVault();
 
-	UFUNCTION(Server, Reliable)
-	virtual void S_Climb();
+	//Climbing
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_Climb();
-	UFUNCTION(Server, Reliable)
-	virtual void S_UpdateClimb();
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION()
 	virtual void Multi_UpdateClimb();
+
+	//Sliding
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_Slide();
+	UFUNCTION()
+	virtual void Multi_UpdateSlide();
 
 	//Player Components
 	UPROPERTY(EditAnywhere)
@@ -126,6 +128,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float _BlockSpeed;
 
+	UPROPERTY(EditAnywhere)
+	bool _IsSprinting;
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _canVault;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -158,6 +163,20 @@ protected:
 	FVector _ClimbLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector TargetClimbLocation;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _canSlide;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _IsSliding;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _CurrentSlide;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _MaxSlide;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector _SlideStartLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector _SlideEndLocation;
 
 	UPROPERTY()
 	FTimerHandle FTimerHandle;

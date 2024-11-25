@@ -58,6 +58,10 @@ ASurvivor_Base::ASurvivor_Base()
 	
 	_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	_IsSprinting = false;
+
+	_WalkSpeed = 500.0f;
+	_SprintSpeed = 1000.0f;
+	_CrouchSpeed = 300.0f;
 	
 	_SurvivorMaxHealth = 2.0f;
 	canHeal = false;
@@ -80,7 +84,7 @@ ASurvivor_Base::ASurvivor_Base()
 	_IsClimbing = false;
 	_MaxClimb = 1.0f;
 
-	_canSlide = false;
+	_canSlide = true;
 	_IsSliding = false;
 	_MaxSlide = 1.0f;
 
@@ -204,11 +208,6 @@ void ASurvivor_Base::IASprint_Implementation_Implementation(const FInputActionIn
 			_IsSprinting = true;
 			_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
 		}
-		else
-		{
-			_IsSprinting = false;
-			_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
-		}
 	}
 }
 
@@ -216,6 +215,8 @@ void ASurvivor_Base::IAStopSprinting_Implementation_Implementation(const FInputA
 {
 	if(!isDowned && !_isHoldingSurvivor)
 	{
+		_IsSprinting = false;
+		_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	}
 }
 
@@ -226,7 +227,7 @@ void ASurvivor_Base::IACrouch_Implementation_Implementation(const FInputActionIn
 		if(!_IsSliding && _IsSprinting && _canSlide)
 		{
 			_SlideStartLocation = GetActorLocation();
-			_SlideEndLocation = GetActorLocation() + (_CharacterMovement->Velocity.GetSafeNormal() * 500.0f);
+			_SlideEndLocation = GetActorLocation() + (GetActorForwardVector() * 500.0f);
 			_Collision->SetCapsuleHalfHeight(40.0f);
 			_CurrentSlide = 0.0f;
 			
@@ -284,7 +285,7 @@ void ASurvivor_Base::IAInteract_Implementation_Implementation(const FInputAction
 		{
 			if(_OverlappedSurvivor->isDowned)
 			{
-				if(!_isHoldingSurvivor || !_isHoldingFuse)
+				if(!_isHoldingSurvivor && !_isHoldingFuse)
 				{
 					_OverlappedSurvivor->_CharacterMovement->SetMovementMode(MOVE_None);
 					_OverlappedSurvivor->AttachToComponent(_PickupLocation, FAttachmentTransformRules::SnapToTargetIncludingScale);
@@ -335,7 +336,7 @@ void ASurvivor_Base::S_Vault_Implementation()
 
 void ASurvivor_Base::Multi_Vault_Implementation()
 {
-	if(!_IsVaulting)
+	if(!_IsVaulting && _OverlappedVault)
 	{
 		_IsSliding = false;
 		_IsClimbing = false;
@@ -344,7 +345,7 @@ void ASurvivor_Base::Multi_Vault_Implementation()
 		
 		_CurrentVault = 0.0f;
 
-		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
+		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Ignore);
 		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateVault, 0.02, true);
 	}
 }
@@ -356,7 +357,7 @@ void ASurvivor_Base::S_UpdateVault_Implementation()
 
 void ASurvivor_Base::Multi_UpdateVault_Implementation()
 {
-	_CurrentVault += (0.02f/_MaxVault);
+	_CurrentVault += (0.05f/_MaxVault);
 
 	FVector NewLocation = FMath::Lerp(_VaultStartLocation, TargetVaultLocation, _CurrentVault);
 	SetActorLocation(NewLocation);
@@ -364,7 +365,7 @@ void ASurvivor_Base::Multi_UpdateVault_Implementation()
 
 	if(_CurrentVault >= _MaxVault)
 	{
-		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Block);
 		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
 		_IsVaulting = false;
 		_canVault = true;
@@ -382,7 +383,7 @@ void ASurvivor_Base::S_Climb_Implementation()
 
 void ASurvivor_Base::Multi_Climb_Implementation()
 {
-	if(!_IsClimbing)
+	if(!_IsClimbing && _OverlappedClimb)
 	{
 		_IsSliding = false;
 		_IsVaulting = false;
@@ -391,7 +392,7 @@ void ASurvivor_Base::Multi_Climb_Implementation()
 		
 		_CurrentClimb = 0.0f;
 
-		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
+		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Ignore);
 		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateClimb, 0.02, true);
 	}
 }
@@ -403,7 +404,7 @@ void ASurvivor_Base::S_UpdateClimb_Implementation()
 
 void ASurvivor_Base::Multi_UpdateClimb_Implementation()
 {
-	_CurrentClimb += (0.02f/_MaxClimb);
+	_CurrentClimb += (0.05f/_MaxClimb);
 
 	FVector NewLocation = FMath::Lerp(_ClimbStartLocation, _OverlappedClimb->_EndLocationA, _CurrentClimb);
 	SetActorLocation(NewLocation);
@@ -411,7 +412,7 @@ void ASurvivor_Base::Multi_UpdateClimb_Implementation()
 
 	if(_CurrentClimb >= _MaxClimb)
 	{
-		_Collision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Block);
 		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
 		_IsClimbing = false;
 		_canClimb = true;
@@ -447,7 +448,7 @@ void ASurvivor_Base::S_UpdateSlide_Implementation()
 
 void ASurvivor_Base::Multi_UpdateSlide_Implementation()
 {
-	_CurrentSlide += (0.02f/_MaxSlide);
+	_CurrentSlide += (0.05f/_MaxSlide);
 	
 	FVector NewLocation = FMath::Lerp(_SlideStartLocation, _SlideEndLocation, _CurrentSlide);
 	SetActorLocation(NewLocation);
