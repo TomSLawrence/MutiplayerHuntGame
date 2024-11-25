@@ -146,15 +146,15 @@ protected:
 	FVector _VaultLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector TargetVaultLocation;
-
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	bool _canClimb;
+	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _IsClimbing;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _CurrentClimb;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _MaxClimb;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _TraceDistance;
 	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -197,9 +197,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ASurvivor_Base> _OverlappedSurvivor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<ATheClimb> _OverlappedClimb;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ATheVault> _OverlappedVault;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ATheClimb> _OverlappedClimb;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool _SurvivorInteract;

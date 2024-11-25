@@ -406,7 +406,7 @@ void ASurvivor_Base::Multi_UpdateClimb_Implementation()
 {
 	_CurrentClimb += (0.05f/_MaxClimb);
 
-	FVector NewLocation = FMath::Lerp(_ClimbStartLocation, _OverlappedClimb->_EndLocationA, _CurrentClimb);
+	FVector NewLocation = FMath::Lerp(_ClimbStartLocation, FVector(GetActorLocation().X,GetActorLocation().Y,(_OverlappedClimb->GetActorLocation().Z * 2)), _CurrentClimb);
 	SetActorLocation(NewLocation);
 	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
 

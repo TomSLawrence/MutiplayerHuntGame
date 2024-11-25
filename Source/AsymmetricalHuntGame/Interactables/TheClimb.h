@@ -16,11 +16,6 @@ class ASYMMETRICALHUNTGAME_API ATheClimb : public AActor
 public:
 	// Sets default values for this actor's properties
 	ATheClimb();
-	
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	FVector _EndLocationA;
 
 protected:
 	// Called when the game starts or when spawned
@@ -28,6 +23,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> _Root;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UStaticMeshComponent> _Mesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UBoxComponent> _Collision;
 };

@@ -58,6 +58,7 @@ AHunter_Base::AHunter_Base()
 	_canClimb = false;
 	_IsClimbing = false;
 	_MaxClimb = 1.0f;
+	_TraceDistance = 10.0f;
 
 	_canSlide = true;
 	_IsSliding = false;
@@ -238,6 +239,12 @@ void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstan
 {
 	if(!_isHoldingSurvivor)
 	{
+		FVector Start = GetActorLocation();
+		FVector End = Start + GetActorForwardVector() * _TraceDistance;
+
+		FHitResult HitResult;
+		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel10);
+		
 		if(_canVault && !_IsVaulting)
 		{
 			_VaultStartLocation = GetActorLocation();
@@ -249,10 +256,9 @@ void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstan
 			
 			Multi_Vault();
 		}
-		else if(_canClimb && !_IsClimbing)
+		else if(HitResult.bBlockingHit && !_IsClimbing)
 		{
 			_ClimbStartLocation = GetActorLocation();
-			
 			Multi_Climb();
 		}
 		else if(!_IsVaulting && !_IsClimbing)
@@ -334,7 +340,6 @@ void AHunter_Base::Multi_Climb_Implementation()
 		_IsSliding = false;
 		_IsVaulting = false;
 		_IsClimbing = true;
-		_canClimb = false;
 		
 		_CurrentClimb = 0.0f;
 
@@ -345,21 +350,17 @@ void AHunter_Base::Multi_Climb_Implementation()
 
 void AHunter_Base::Multi_UpdateClimb()
 {
-	if(_OverlappedClimb)
+	_CurrentClimb += (0.05f/_MaxClimb);
+
+	FVector NewLocation = FMath::Lerp(_ClimbStartLocation, FVector(GetActorLocation().X, GetActorLocation().Y,(_OverlappedClimb->GetActorLocation().Z * 2) + 300.0f), _CurrentClimb);
+	SetActorLocation(NewLocation);
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
+
+	if(_CurrentClimb >= _MaxClimb)
 	{
-		_CurrentClimb += (0.05f/_MaxClimb);
-
-		FVector NewLocation = FMath::Lerp(_ClimbStartLocation, _OverlappedClimb->_EndLocationA, _CurrentClimb);
-		SetActorLocation(NewLocation);
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
-
-		if(_CurrentClimb >= _MaxClimb)
-		{
-			_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Block);
-			GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
-			_IsClimbing = false;
-			_canClimb = true;
-		}
+		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Block);
+		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+		_IsClimbing = false;
 	}
 }
 
@@ -419,11 +420,11 @@ void AHunter_Base::OnHunterCollisionOverlap(UPrimitiveComponent* OverlappedCompo
 		_OverlappedVault = _Vault;
 		_canVault = true;
 	}
-	else if(ATheClimb* _ClimbingWall = Cast<ATheClimb>(_HitActor))
+	else if (ATheClimb* _ClimbingWall = Cast<ATheClimb>(_HitActor))
 	{
 		_OverlappedClimb = _ClimbingWall;
-		_canClimb = true;
 	}
+
 }
 
 void AHunter_Base::OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -434,9 +435,8 @@ void AHunter_Base::OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedCo
 		_canVault = false;
 		_OverlappedVault = nullptr;
 	}
-	else if(_OverlappedClimb)
+	else if (_OverlappedClimb)
 	{
-		_canClimb = false;
 		_OverlappedClimb = nullptr;
 	}
 }
