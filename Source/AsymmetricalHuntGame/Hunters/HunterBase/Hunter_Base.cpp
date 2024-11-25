@@ -54,8 +54,7 @@ AHunter_Base::AHunter_Base()
 	_canVault = false;
 	_IsVaulting = false;
 	_MaxVault = 1.0f;
-
-	_canClimb = false;
+	
 	_IsClimbing = false;
 	_MaxClimb = 1.0f;
 	_TraceDistance = 10.0f;
@@ -247,6 +246,8 @@ void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstan
 		
 		if(_canVault && !_IsVaulting)
 		{
+					
+			_CurrentVault = 0.0f;
 			_VaultStartLocation = GetActorLocation();
 			_VaultLocation = _OverlappedVault->GetActorLocation();
 
@@ -258,10 +259,11 @@ void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstan
 		}
 		else if(HitResult.bBlockingHit && !_IsClimbing)
 		{
+			_CurrentClimb = 0.0f;
 			_ClimbStartLocation = GetActorLocation();
 			Multi_Climb();
 		}
-		else if(!_IsVaulting && !_IsClimbing)
+		else if(!HitResult.bBlockingHit && !_IsVaulting && !_IsClimbing)
 		{
 			Jump();
 		}
@@ -304,8 +306,6 @@ void AHunter_Base::Multi_Vault_Implementation()
 		_IsClimbing = false;
 		_IsVaulting = true;
 		_canVault = false;
-		
-		_CurrentVault = 0.0f;
 
 		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Ignore);
 		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &AHunter_Base::Multi_UpdateVault, 0.02, true);
@@ -337,25 +337,28 @@ void AHunter_Base::Multi_Climb_Implementation()
 {
 	if(!_IsClimbing)
 	{
-		_IsSliding = false;
-		_IsVaulting = false;
-		_IsClimbing = true;
-		
-		_CurrentClimb = 0.0f;
+		if(_OverlappedClimb)
+		{
+			_IsSliding = false;
+			_IsVaulting = false;
+			_IsClimbing = true;
 
-		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Ignore);
-		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &AHunter_Base::Multi_UpdateClimb, 0.02, true);
+			_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Ignore);
+			GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &AHunter_Base::Multi_UpdateClimb, 0.02, true);
+		}
 	}
 }
 
 void AHunter_Base::Multi_UpdateClimb()
 {
-	_CurrentClimb += (0.05f/_MaxClimb);
+	if(_OverlappedClimb)
+	{
+		_CurrentClimb += (0.05f/_MaxClimb);
 
-	FVector NewLocation = FMath::Lerp(_ClimbStartLocation, FVector(GetActorLocation().X, GetActorLocation().Y,(_OverlappedClimb->GetActorLocation().Z * 2) + 300.0f), _CurrentClimb);
-	SetActorLocation(NewLocation);
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
-
+		FVector NewLocation = FMath::Lerp(_ClimbStartLocation, FVector(GetActorLocation().X, GetActorLocation().Y,(_OverlappedClimb->GetActorLocation().Z * 2) + 50.0f), _CurrentClimb);
+		SetActorLocation(NewLocation);
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
+	}
 	if(_CurrentClimb >= _MaxClimb)
 	{
 		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Block);
