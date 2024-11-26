@@ -238,7 +238,7 @@ void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstan
 {
 	if(!_isHoldingSurvivor)
 	{
-		FVector Start = GetActorLocation();
+		FVector Start = _Camera->GetComponentLocation();
 		FVector End = Start + GetActorForwardVector() * _TraceDistance;
 
 		FHitResult HitResult;
@@ -259,6 +259,7 @@ void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstan
 		}
 		else if(HitResult.bBlockingHit && !_IsClimbing)
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Jumping!"));
 			_CurrentClimb = 0.0f;
 			_ClimbStartLocation = GetActorLocation();
 			Multi_Climb();
@@ -437,10 +438,14 @@ void AHunter_Base::OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedCo
 	{
 		_canVault = false;
 		_OverlappedVault = nullptr;
+		_CurrentVault = 0.0f;
+		_IsSliding = false;
 	}
 	else if (_OverlappedClimb)
 	{
 		_OverlappedClimb = nullptr;
+		_CurrentClimb = 0.0f;
+		_IsClimbing = false;
 	}
 }
 
