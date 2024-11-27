@@ -72,8 +72,6 @@ public:
 	//Sliding
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_Slide();
-	UFUNCTION()
-	virtual void Multi_UpdateSlide();
 
 	//Player Components
 	UPROPERTY(EditAnywhere)
@@ -172,14 +170,13 @@ protected:
 	float _CurrentSlide;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _MaxSlide;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector _SlideStartLocation;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector _SlideEndLocation;
+	float _SlidePower;
 
 	UPROPERTY()
 	FTimerHandle FTimerHandle;
+	
+	FCollisionQueryParams _CollisionParams;
 	
 	UPROPERTY()
 	FVector _RaisedWeaponLocation;
