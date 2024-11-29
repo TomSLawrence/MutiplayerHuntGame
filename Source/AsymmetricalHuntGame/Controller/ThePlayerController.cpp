@@ -26,7 +26,8 @@ void AThePlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(_Crouch, ETriggerEvent::Completed, this, &AThePlayerController::StandInput);
 		EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Triggered, this, &AThePlayerController::AimInput);
 		EnhancedInputComponent->BindAction(_Aim, ETriggerEvent::Completed, this, &AThePlayerController::StopAiming);
-		EnhancedInputComponent->BindAction(_Shoot, ETriggerEvent::Triggered, this, &AThePlayerController::ShootInput);
+		EnhancedInputComponent->BindAction(_Shoot, ETriggerEvent::Triggered, this, &AThePlayerController::MeleeInput);
+		EnhancedInputComponent->BindAction(_Shoot, ETriggerEvent::Completed, this, &AThePlayerController::StopMeleeInput);
 		EnhancedInputComponent->BindAction(_Interact, ETriggerEvent::Triggered, this, &AThePlayerController::Interact);
 	}
 }
@@ -205,7 +206,7 @@ void AThePlayerController::JumpInput(const FInputActionInstance& Instance)
 	}
 }
 
-void AThePlayerController::ShootInput(const FInputActionInstance& Instance)
+void AThePlayerController::MeleeInput(const FInputActionInstance& Instance)
 {
 	if(this->IsLocalController() && HasAuthority())
 	{
@@ -213,7 +214,19 @@ void AThePlayerController::ShootInput(const FInputActionInstance& Instance)
 	}
 	else
 	{
-		S_ShootInput(Instance);
+		S_MeleeInput(Instance);
+	}
+}
+
+void AThePlayerController::StopMeleeInput(const FInputActionInstance& Instance)
+{
+	if(this->IsLocalController() && HasAuthority())
+	{
+		Execute_IAMelee(GetCharacter(), Instance);
+	}
+	else
+	{
+		S_StopMeleeInput(Instance);
 	}
 }
 
@@ -312,9 +325,13 @@ void AThePlayerController::S_JumpInput_Implementation(const FInputActionInstance
 	Execute_IAJump(GetCharacter(), Instance);
 }
 
-void AThePlayerController::S_ShootInput_Implementation(const FInputActionInstance& Instance)
+void AThePlayerController::S_MeleeInput_Implementation(const FInputActionInstance& Instance)
 {
 	Execute_IAMelee(GetCharacter(), Instance);
+}
+void AThePlayerController::S_StopMeleeInput_Implementation(const FInputActionInstance& Instance)
+{
+	Execute_IAStopMelee(GetCharacter(), Instance);
 }
 
 void AThePlayerController::S_AimInput_Implementation(const FInputActionInstance& Instance)
@@ -380,7 +397,12 @@ bool AThePlayerController::S_JumpInput_Validate(const FInputActionInstance& Inst
 	return true;
 }
 
-bool AThePlayerController::S_ShootInput_Validate(const FInputActionInstance& Instance)
+bool AThePlayerController::S_MeleeInput_Validate(const FInputActionInstance& Instance)
+{
+	return true;
+}
+
+bool AThePlayerController::S_StopMeleeInput_Validate(const FInputActionInstance& Instance)
 {
 	return true;
 }

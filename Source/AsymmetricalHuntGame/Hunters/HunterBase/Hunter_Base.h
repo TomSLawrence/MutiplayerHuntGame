@@ -45,6 +45,8 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAMelee_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
+	virtual void IAStopMelee_Implementation(const FInputActionInstance& Instance) override;
+	UFUNCTION(NetMulticast, Reliable)
 	virtual void IABlock_Implementation(const FInputActionInstance& Instance) override;
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAStopBlocking_Implementation(const FInputActionInstance& Instance) override;
@@ -53,11 +55,22 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAInteract_Implementation(const FInputActionInstance& Instance) override;
 
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_HunterLunge();
+	UFUNCTION()
+	virtual void Multi_UpdateHunterLunge();
+
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_MissedLunge();
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multi_HitLunge();
+	UFUNCTION()
+	virtual void Multi_LungeCooldown();
+
 	
 	//Movement Mechanics
 
 	//Vaulting
-
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_Vault();
 	UFUNCTION()
@@ -128,6 +141,27 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	bool _IsSprinting;
+	UPROPERTY(EditAnywhere)
+	bool _CanSprint;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _LungePower;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool _IsSwinging;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool _CanSwing;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool _HitPlayer;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _CurrentSwing;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _MaxSwing;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _CurrentCooldown;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _MaxCooldown;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _CooldownSpeed;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _canVault;
@@ -147,6 +181,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _IsClimbing;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool _CanClimb;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _CurrentClimb;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -172,9 +208,13 @@ protected:
 	float _MaxSlide;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _SlidePower;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector _PlayerForward;
 
 	UPROPERTY()
-	FTimerHandle FTimerHandle;
+	FTimerHandle FActionTimerHandle;
+	UPROPERTY()
+	FTimerHandle FSlideTimerHandle;
 	
 	FCollisionQueryParams _CollisionParams;
 	

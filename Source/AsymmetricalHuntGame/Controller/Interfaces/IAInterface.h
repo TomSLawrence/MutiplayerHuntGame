@@ -44,6 +44,9 @@ class ASYMMETRICALHUNTGAME_API IIAInterface
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void IAMelee(const FInputActionInstance& Instance);
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void IAStopMelee(const FInputActionInstance& Instance);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void IABlock(const FInputActionInstance& Instance);

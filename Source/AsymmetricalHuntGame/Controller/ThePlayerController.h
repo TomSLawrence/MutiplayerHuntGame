@@ -71,7 +71,8 @@ public:
 	void CrouchInput(const FInputActionInstance& Instance);
 	void StandInput(const FInputActionInstance& Instance);
 	void JumpInput(const FInputActionInstance& Instance);
-	void ShootInput(const FInputActionInstance& Instance);
+	void MeleeInput(const FInputActionInstance& Instance);
+	void StopMeleeInput(const FInputActionInstance& Instance);
 	void AimInput(const FInputActionInstance& Instance);
 	void StopAiming(const FInputActionInstance& Instance);
 	void Interact(const FInputActionInstance& Instance);
@@ -95,7 +96,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void S_JumpInput(const FInputActionInstance& Instance);
 	UFUNCTION(Server, Reliable, WithValidation)
-	void S_ShootInput(const FInputActionInstance& Instance);
+	void S_MeleeInput(const FInputActionInstance& Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void S_StopMeleeInput(const FInputActionInstance& Instance);
 	UFUNCTION(Server, Reliable, WithValidation)
 	void S_AimInput(const FInputActionInstance& Instance);
 	UFUNCTION(Server, Reliable, WithValidation)

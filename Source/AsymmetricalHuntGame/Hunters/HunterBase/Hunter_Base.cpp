@@ -3,7 +3,6 @@
 #include "AsymmetricalHuntGame/Interactables/TheClimb.h"
 #include "AsymmetricalHuntGame/Interactables/TheVault.h"
 #include "AsymmetricalHuntGame/Survivors/SurvivorBase/Survivor_Base.h"
-#include "AsymmetricalHuntGame/Map/Assets/MyTree.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
@@ -50,6 +49,9 @@ AHunter_Base::AHunter_Base()
 	_BlockSpeed = 400.0f;
 	_CarryingSpeed = 400.0f;
 	_SprintSpeed = 1000.0f;
+	_CooldownSpeed = 100.0f;
+
+	_CanSprint = true;
 
 	_canVault = false;
 	_IsVaulting = false;
@@ -61,15 +63,24 @@ AHunter_Base::AHunter_Base()
 
 	_canSlide = true;
 	_IsSliding = false;
-	_SlidePower = 1000.0f;
+	_SlidePower = 500.0f;
 	_MaxSlide = 2.0f;
 	_CurrentSlide = 0.0f;
+	_PlayerForward = FVector(0.0f,0.0f,0.0f);
 	
 	_SurvivorInteract = false;
 	_isHoldingSurvivor = false;
 
 	_RaisedWeaponLocation = FVector(110.0f, 0.0f, -40.0f);
 	_LoweredWeaponLocation = FVector(60.f, 80.f, -40.f);
+	_LungePower = 5000.0f;
+	_IsSwinging = false;
+	_CanSwing = true;
+	_CurrentSwing = 0.0f;
+	_CurrentCooldown = 0.0f;
+	_MaxCooldown = 0.0f;
+	_MaxSwing = 1.0f;
+	_HitPlayer = false;
 
 	_CharacterMesh->SetOnlyOwnerSee(false);
 	
@@ -89,8 +100,8 @@ void AHunter_Base::BeginPlay()
 	_IgnoredActors.Add(this);
 	_CollisionParams.AddIgnoredActor(this);
 
-	_HunterActionCollision->OnComponentBeginOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionOverlap);
-	_HunterActionCollision->OnComponentEndOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionEndOverlap);
+	_HunterActionCollision->OnComponentBeginOverlap.AddDynamic(this, &AHunter_Base::OnHunterActionCollisionOverlap);
+	_HunterActionCollision->OnComponentEndOverlap.AddDynamic(this, &AHunter_Base::OnHunterActionCollisionEndOverlap);
 
 	_Collision->OnComponentBeginOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionOverlap);
 	_Collision->OnComponentEndOverlap.AddDynamic(this, &AHunter_Base::OnHunterCollisionEndOverlap);
@@ -139,7 +150,7 @@ void AHunter_Base::IAStopAction_Implementation_Implementation(const FInputAction
 
 void AHunter_Base::IASprint_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	if(!_isHoldingSurvivor)
+	if(!_isHoldingSurvivor && _CanSprint)
 	{
 		_IsSprinting = true;
 		_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
@@ -148,7 +159,7 @@ void AHunter_Base::IASprint_Implementation_Implementation(const FInputActionInst
 
 void AHunter_Base::IAStopSprinting_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	if(!_isHoldingSurvivor)
+	if(!_isHoldingSurvivor && _CanSprint)
 	{
 		_IsSprinting = false;
 		_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
@@ -159,7 +170,7 @@ void AHunter_Base::IACrouch_Implementation_Implementation(const FInputActionInst
 {
 	if(!_isHoldingSurvivor)
 	{
-		if(!_IsSliding && _IsSprinting && _canSlide)
+		if(!_IsSliding && _IsSprinting && _canSlide && !_IsSwinging)
 		{
 			_IsClimbing = false;
 			_IsVaulting = false;
@@ -167,12 +178,8 @@ void AHunter_Base::IACrouch_Implementation_Implementation(const FInputActionInst
 			_IsSliding = true;
 			_CurrentSlide = 0.0f;
 			
-
-			_CharacterMovement->AddForce(GetActorForwardVector() * _SlidePower);
-			GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &AHunter_Base::Multi_Slide, 0.02, true);
 			_Collision->SetCapsuleHalfHeight(40.0f);
-			
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Sliding!"));
+			GetWorld()->GetTimerManager().SetTimer(FSlideTimerHandle, this, &AHunter_Base::Multi_Slide, 0.02, true);
 		}
 		else if(!_IsSprinting)
 		{
@@ -188,6 +195,8 @@ void AHunter_Base::IAStand_Implementation_Implementation(const FInputActionInsta
 	{
 		_Collision->SetCapsuleHalfHeight(100.0f);
 		UnCrouch();
+		GetWorld()->GetTimerManager().ClearTimer(FSlideTimerHandle);
+		_IsSliding = false;
 		_canSlide = true;
 	}
 	
@@ -195,38 +204,22 @@ void AHunter_Base::IAStand_Implementation_Implementation(const FInputActionInsta
 
 void AHunter_Base::IAMelee_Implementation_Implementation(const FInputActionInstance& Instance)
 {
-	//Shooting Function called on individual hunters
+	//Melee Function called on individual hunters
 
+	if(HasAuthority() && _CanSwing)
+	{
+		_CurrentSwing = 0.0f;
+		_CurrentCooldown = 0.0f;
+		Multi_HunterLunge();
+	}
+}
+
+void AHunter_Base::IAStopMelee_Implementation_Implementation(const FInputActionInstance& Instance)
+{
 	if(HasAuthority())
 	{
-		_StartLocation = _MeleeLocation->GetComponentLocation();
-
-		FHitResult HitResult;
-
-		bool bHit = UKismetSystemLibrary::SphereTraceSingle(GetWorld(), _StartLocation, _StartLocation, 30.0f, 
-			TraceTypeQuery3, false, _IgnoredActors, EDrawDebugTrace::ForDuration, HitResult, true,
-			FLinearColor::Red, FLinearColor::Green, 1.0f);
-
-		
-		if(bHit)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit Survivor!"));
-			if(ASurvivor_Base* HitSurvivor = Cast<ASurvivor_Base>(HitResult.GetActor()))
-			{
-				HitSurvivor->S_BaseSurvivorDamage();
-				
-			}
-			else if(AMyTree* _HitTree = Cast<AMyTree>(HitResult.GetActor()))
-			{
-				if(_HitTree)
-				{
-					GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit Tree!"));
-				}
-			}
-		
-		}
+		Multi_MissedLunge();
 	}
-	
 }
 
 void AHunter_Base::IABlock_Implementation_Implementation(const FInputActionInstance& Instance)
@@ -267,7 +260,7 @@ void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstan
 			
 			Multi_Vault();
 		}
-		else if(HitResult.bBlockingHit && !_IsClimbing)
+		else if(HitResult.bBlockingHit && !_IsClimbing && _CanClimb)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Jumping!"));
 			_CurrentClimb = 0.0f;
@@ -300,25 +293,152 @@ void AHunter_Base::IAInteract_Implementation_Implementation(const FInputActionIn
 	}
 	else
 	{
-		_OverlappedSurvivor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		_OverlappedSurvivor->_CharacterMovement->SetMovementMode(MOVE_Walking);
+		_OverlappedSurvivor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		_isHoldingSurvivor = false;
 		_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 	}
+}
+
+//Attacking
+
+void AHunter_Base::Multi_HunterLunge_Implementation()
+{
+	if(!_IsSwinging)
+	{
+		_IsSliding = false;
+		_IsClimbing = false;
+		_IsVaulting = false;
+		_IsSwinging = true;
+
+		GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_UpdateHunterLunge, 0.02, true);
+		
+	}
+}
+
+void AHunter_Base::Multi_UpdateHunterLunge()
+{
+	_CurrentSwing += (0.05f / _MaxSwing);
+	
+	if(_CurrentSwing <= _MaxSwing)
+	{
+		_CharacterMovement->AddForce(GetActorForwardVector() * _LungePower);
+
+		_StartLocation = _MeleeLocation->GetComponentLocation();
+		FHitResult HitResult;
+
+		bool bHit = UKismetSystemLibrary::SphereTraceSingle(GetWorld(), _StartLocation, _StartLocation, 30.0f, 
+			TraceTypeQuery3, false, _IgnoredActors, EDrawDebugTrace::ForDuration, HitResult, true,
+			FLinearColor::Red, FLinearColor::Green, 1.0f);
+		
+		if(bHit)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit Survivor!"));
+			if(ASurvivor_Base* HitSurvivor = Cast<ASurvivor_Base>(HitResult.GetActor()))
+			{
+				GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+				Multi_HitLunge();
+				HitSurvivor->S_BaseSurvivorDamage();
+			}
+			else
+			{
+				GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+				Multi_HitLunge();
+			}
+		}
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+		Multi_MissedLunge();
+	}
+}
+
+
+void AHunter_Base::Multi_MissedLunge_Implementation()
+{
+	_IsSwinging = false;
+	_CanSwing = true;
+
+	GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_LungeCooldown, 0.02, true);
+}
+
+void AHunter_Base::Multi_HitLunge_Implementation()
+{
+	_IsSwinging = false;
+	_CanSwing = true;
+	_HitPlayer = true;
+
+	GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_LungeCooldown, 0.02, true);
+}
+
+void AHunter_Base::Multi_LungeCooldown()
+{
+	if(!_IsSwinging)
+	{
+		_CurrentCooldown += (0.05/_MaxCooldown);
+		if(_HitPlayer)
+		{
+			_MaxCooldown = 3.0f;
+
+			if(_CurrentCooldown <= _MaxCooldown)
+			{
+				_CanSprint = false;
+				_CharacterMovement->MaxWalkSpeed = _CooldownSpeed;
+				_CanSwing = false;
+				_canSlide = false;
+				_CanClimb = false;
+			}
+			else if(_CurrentCooldown >= _MaxCooldown)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+				_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+				_CanSwing = true;
+				_canSlide = true;
+				_CanClimb = true;
+				_CanSprint = true;
+				_HitPlayer = false;
+			}
+		}
+		else
+		{
+			_MaxCooldown = 2.0f;
+		
+			if(_CurrentCooldown <= _MaxCooldown)
+			{
+				_CanSprint = false;
+				_CharacterMovement->MaxWalkSpeed =  _CooldownSpeed;
+				_CanSwing = false;
+				_canSlide = false;
+				_CanClimb = false;
+			}
+			else if(_CurrentCooldown >= _MaxCooldown)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+				_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+				_CanSwing = true;
+				_canSlide = true;
+				_CanClimb = true;
+				_CanSprint = true;
+				_HitPlayer = false;
+			}
+		}
+	}
+	
 }
 
 //Vaulting
 
 void AHunter_Base::Multi_Vault_Implementation()
 {
-	if(!_IsVaulting)
+	if(!_IsVaulting && !_IsSwinging)
 	{
 		_IsSliding = false;
 		_IsClimbing = false;
 		_IsVaulting = true;
 		_canVault = false;
 		
-		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &AHunter_Base::Multi_UpdateVault, 0.02, true);
+		GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_UpdateVault, 0.02, true);
 	}
 }
 
@@ -333,7 +453,7 @@ void AHunter_Base::Multi_UpdateVault()
 
 		if(_CurrentVault >= _MaxVault)
 		{
-			GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+			GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
 			_IsVaulting = false;
 			_canVault = true;
 		}
@@ -344,7 +464,7 @@ void AHunter_Base::Multi_UpdateVault()
 //Climbing
 void AHunter_Base::Multi_Climb_Implementation()
 {
-	if(!_IsClimbing)
+	if(!_IsClimbing && !_IsSwinging)
 	{
 		if(_OverlappedClimb)
 		{
@@ -353,14 +473,14 @@ void AHunter_Base::Multi_Climb_Implementation()
 			_IsClimbing = true;
 
 			_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Ignore);
-			GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &AHunter_Base::Multi_UpdateClimb, 0.02, true);
+			GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_UpdateClimb, 0.02, true);
 		}
 	}
 }
 
 void AHunter_Base::Multi_UpdateClimb()
 {
-	_CurrentClimb += (0.01f/_MaxClimb);
+	_CurrentClimb += (0.05f/_MaxClimb);
 
 	FVector NewLocation = FMath::Lerp(_ClimbStartLocation, FVector(GetActorLocation().X, GetActorLocation().Y,
 		(_OverlappedClimb->GetActorLocation().Z * 2) + 50.0f), _CurrentClimb);
@@ -371,7 +491,7 @@ void AHunter_Base::Multi_UpdateClimb()
 	if(_CurrentClimb >= _MaxClimb)
 	{
 		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Block);
-		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
 		_IsClimbing = false;
 	}
 }
@@ -381,12 +501,13 @@ void AHunter_Base::Multi_Slide_Implementation()
 	if(_IsSliding && _canSlide)
 	{
 		_CurrentSlide += (0.05f / _MaxSlide);
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Sliding!"));
 	}
 
 	if(_CurrentSlide >= _MaxSlide)
 	{
 		_Collision->SetCapsuleHalfHeight(100.0f);
-		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
 		_IsSliding = false;
 		_canSlide = false;
 	}

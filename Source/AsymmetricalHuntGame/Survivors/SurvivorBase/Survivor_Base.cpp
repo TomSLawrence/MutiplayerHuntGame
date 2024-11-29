@@ -294,8 +294,8 @@ void ASurvivor_Base::IAInteract_Implementation_Implementation(const FInputAction
 				}
 				else
 				{
-					_OverlappedSurvivor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 					_OverlappedSurvivor->_CharacterMovement->SetMovementMode(MOVE_Walking);
+					_OverlappedSurvivor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 					_isHoldingSurvivor = false;
 					canHeal = true;
 				}
