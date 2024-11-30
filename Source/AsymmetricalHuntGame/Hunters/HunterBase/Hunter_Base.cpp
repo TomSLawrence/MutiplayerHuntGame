@@ -63,10 +63,8 @@ AHunter_Base::AHunter_Base()
 
 	_canSlide = true;
 	_IsSliding = false;
-	_SlidePower = 500.0f;
 	_MaxSlide = 2.0f;
 	_CurrentSlide = 0.0f;
-	_PlayerForward = FVector(0.0f,0.0f,0.0f);
 	
 	_SurvivorInteract = false;
 	_isHoldingSurvivor = false;
@@ -433,12 +431,15 @@ void AHunter_Base::Multi_Vault_Implementation()
 {
 	if(!_IsVaulting && !_IsSwinging)
 	{
-		_IsSliding = false;
-		_IsClimbing = false;
-		_IsVaulting = true;
-		_canVault = false;
-		
-		GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_UpdateVault, 0.02, true);
+		if(_OverlappedVault)
+		{
+			_IsSliding = false;
+			_IsClimbing = false;
+			_IsVaulting = true;
+			_canVault = false;
+			
+			GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_UpdateVault, 0.02, true);
+		}
 	}
 }
 
@@ -480,19 +481,22 @@ void AHunter_Base::Multi_Climb_Implementation()
 
 void AHunter_Base::Multi_UpdateClimb()
 {
-	_CurrentClimb += (0.05f/_MaxClimb);
-
-	FVector NewLocation = FMath::Lerp(_ClimbStartLocation, FVector(GetActorLocation().X, GetActorLocation().Y,
-		(_OverlappedClimb->GetActorLocation().Z * 2) + 50.0f), _CurrentClimb);
-	
-	SetActorLocation(NewLocation);
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
-	
-	if(_CurrentClimb >= _MaxClimb)
+	if(_OverlappedClimb)
 	{
-		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Block);
-		GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
-		_IsClimbing = false;
+		_CurrentClimb += (0.05f/_MaxClimb);
+
+		FVector NewLocation = FMath::Lerp(_ClimbStartLocation, FVector(GetActorLocation().X, GetActorLocation().Y,
+			(_OverlappedClimb->GetActorLocation().Z * 2) + 50.0f), _CurrentClimb);
+		
+		SetActorLocation(NewLocation);
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
+		
+		if(_CurrentClimb >= _MaxClimb)
+		{
+			_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Block);
+			GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+			_IsClimbing = false;
+		}
 	}
 }
 

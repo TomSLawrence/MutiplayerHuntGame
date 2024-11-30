@@ -7,8 +7,6 @@
 #include "AsymmetricalHuntGame/Controller/PlayerState/ThePlayerState.h"
 #include "GameFramework/Character.h"
 #include "AsymmetricalHuntGame/Hunters/Hunter_Ghost/Hunter_Ghost.h"
-#include "AsymmetricalHuntGame/Map/Assets/MyBush.h"
-#include "AsymmetricalHuntGame/Map/Assets/MyTree.h"
 #include "AsymmetricalHuntGame/Survivors/Survivor_Craig/Survivor_Craig.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -19,9 +17,7 @@ ATheGameMode::ATheGameMode()
 	PlayerControllerClass = AThePlayerController::StaticClass();
 	GameStateClass = ATheGameState::StaticClass();
 	PlayerStateClass = AThePlayerState::StaticClass();
-
-	_MaxTreeNumber = 1000;
-	_MaxBushNumber = 500;
+	
 }
 
 void ATheGameMode::OnPostLogin(AController* NewPlayer)
@@ -45,34 +41,7 @@ void ATheGameMode::S_SpawnMap_Implementation()
 
 void ATheGameMode::Multi_SpawnMap_Implementation()
 {
-	/*
-	for(int i = 0; i < _MaxTreeNumber; i++)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		SpawnParams.Owner = GetOwner();
-		SpawnParams.Instigator = GetInstigator();
-
-		FVector AssetSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-6000,6000),UKismetMathLibrary::RandomIntegerInRange(-6000, 6000),5.0f);
-		FRotator AssetSpawnRotation(0.0f, 0.0f, 0.0f);
-
-		GetWorld()->SpawnActor<AMyTree>(_MyTree, AssetSpawnLocation, AssetSpawnRotation, SpawnParams);
-		
-	}
-	for(int i = 0; i < _MaxBushNumber; i++)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		SpawnParams.Owner = GetOwner();
-		SpawnParams.Instigator = GetInstigator();
-
-		FVector AssetSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-6000,6000),UKismetMathLibrary::RandomIntegerInRange(-6000, 6000),5.0f);
-		FRotator AssetSpawnRotation(0.0f, 0.0f, 0.0f);
-
-		GetWorld()->SpawnActor<AMyBush>(_MyBush, AssetSpawnLocation, AssetSpawnRotation, SpawnParams);
-		
-	}
-	*/
+	//Spawn Map
 }
 
 

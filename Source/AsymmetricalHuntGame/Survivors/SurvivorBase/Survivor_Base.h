@@ -139,6 +139,7 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_UpdateSlide();
 
+
 	//Collisions
 	UFUNCTION()
 	virtual void OnSurvivorActionCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -225,17 +226,16 @@ protected:
 	FVector _VaultLocation;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	FVector TargetVaultLocation;
-
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	bool _canClimb;
+	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _IsClimbing;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	float _CurrentClimb;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	float _MaxClimb;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float _TraceDistance;
 	
-
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	FVector _ClimbStartLocation;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
@@ -249,7 +249,7 @@ protected:
 	bool _IsSliding;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	float _CurrentSlide;
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _MaxSlide;
 	
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
@@ -259,6 +259,9 @@ protected:
 	
 	UPROPERTY()
 	FTimerHandle FTimerHandle;
+
+	FCollisionQueryParams _CollisionParams;
+	
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	bool canHeal;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)

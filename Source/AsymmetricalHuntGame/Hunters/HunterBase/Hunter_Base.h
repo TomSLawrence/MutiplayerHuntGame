@@ -206,10 +206,6 @@ protected:
 	float _CurrentSlide;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _MaxSlide;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float _SlidePower;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector _PlayerForward;
 
 	UPROPERTY()
 	FTimerHandle FActionTimerHandle;

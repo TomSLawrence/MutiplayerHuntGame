@@ -40,18 +40,6 @@ protected:
 	TSubclassOf<AHunter_Ghost> _TheHunterCharacter;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ASurvivor_Craig> _TheSurvivorCharacter;
-
-	
-	//Map Asset Spawn
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AMyTree> _MyTree;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AMyBush> _MyBush;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int _MaxTreeNumber;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int _MaxBushNumber;
 	
 	virtual void OnPostLogin(AController* NewPlayer) override;
 
