@@ -2,6 +2,8 @@
 
 
 #include "TheClimb.h"
+
+#include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
 
 // Sets default values
@@ -14,6 +16,9 @@ ATheClimb::ATheClimb()
 	
 	_Collision = CreateDefaultSubobject<UBoxComponent>(TEXT("Collision"));
 	_Collision->SetupAttachment(_Root);
+
+	_PlayerDestination = CreateDefaultSubobject<UArrowComponent>(TEXT("Player Destination"));
+	_PlayerDestination->SetupAttachment(_Root);
 }
 
 // Called when the game starts or when spawned

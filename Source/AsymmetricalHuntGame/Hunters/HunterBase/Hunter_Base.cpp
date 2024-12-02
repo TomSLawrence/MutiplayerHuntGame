@@ -1,5 +1,6 @@
 ﻿#include "Hunter_Base.h"
 
+#include "DrawDebugHelpers.h"
 #include "AsymmetricalHuntGame/Interactables/TheClimb.h"
 #include "AsymmetricalHuntGame/Interactables/TheVault.h"
 #include "AsymmetricalHuntGame/Survivors/SurvivorBase/Survivor_Base.h"
@@ -150,8 +151,13 @@ void AHunter_Base::IASprint_Implementation_Implementation(const FInputActionInst
 {
 	if(!_isHoldingSurvivor && _CanSprint)
 	{
+		if(!_IsSliding)
+		{
+			UnCrouch();
+		}
 		_IsSprinting = true;
 		_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
+		_CharacterMovement->MaxWalkSpeedCrouched = _SprintSpeed;
 	}
 }
 
@@ -161,6 +167,7 @@ void AHunter_Base::IAStopSprinting_Implementation_Implementation(const FInputAct
 	{
 		_IsSprinting = false;
 		_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+		_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
 	}
 }
 
@@ -176,8 +183,13 @@ void AHunter_Base::IACrouch_Implementation_Implementation(const FInputActionInst
 			_IsSliding = true;
 			_CurrentSlide = 0.0f;
 			
-			_Collision->SetCapsuleHalfHeight(40.0f);
-			GetWorld()->GetTimerManager().SetTimer(FSlideTimerHandle, this, &AHunter_Base::Multi_Slide, 0.02, true);
+			
+			if(_canSlide)
+			{
+				_canSlide = false;
+				Crouch();
+				GetWorld()->GetTimerManager().SetTimer(FSlideTimerHandle, this, &AHunter_Base::Multi_Slide, 0.02, true);
+			}
 		}
 		else if(!_IsSprinting)
 		{
@@ -191,10 +203,7 @@ void AHunter_Base::IAStand_Implementation_Implementation(const FInputActionInsta
 {
 	if(!_isHoldingSurvivor)
 	{
-		_Collision->SetCapsuleHalfHeight(100.0f);
-		UnCrouch();
-		GetWorld()->GetTimerManager().ClearTimer(FSlideTimerHandle);
-		_IsSliding = false;
+		CharacterStand();
 		_canSlide = true;
 	}
 	
@@ -486,7 +495,7 @@ void AHunter_Base::Multi_UpdateClimb()
 		_CurrentClimb += (0.05f/_MaxClimb);
 
 		FVector NewLocation = FMath::Lerp(_ClimbStartLocation, FVector(GetActorLocation().X, GetActorLocation().Y,
-			(_OverlappedClimb->GetActorLocation().Z * 2) + 50.0f), _CurrentClimb);
+			(_OverlappedClimb->_PlayerDestination->GetComponentLocation().Z)), _CurrentClimb);
 		
 		SetActorLocation(NewLocation);
 		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
@@ -502,7 +511,7 @@ void AHunter_Base::Multi_UpdateClimb()
 
 void AHunter_Base::Multi_Slide_Implementation()
 {
-	if(_IsSliding && _canSlide)
+	if(_IsSliding)
 	{
 		_CurrentSlide += (0.05f / _MaxSlide);
 		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Sliding!"));
@@ -510,10 +519,40 @@ void AHunter_Base::Multi_Slide_Implementation()
 
 	if(_CurrentSlide >= _MaxSlide)
 	{
-		_Collision->SetCapsuleHalfHeight(100.0f);
-		GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+		CharacterStand();
+	}
+}
+
+void AHunter_Base::CharacterStand()
+{
+	float CurrentHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+	float UncrouchedHalfHeight = 100.0f;
+	float Radius = GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+
+	FVector CapsuleTopOffset = FVector(0, 0, (UncrouchedHalfHeight - CurrentHalfHeight));
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	FHitResult HitResult;
+	FVector Start = GetActorLocation();
+	FVector End = Start + CapsuleTopOffset;
+
+	bool _StandUpCheck = GetWorld()->SweepSingleByChannel(HitResult,Start,End,FQuat::Identity,
+		ECC_GameTraceChannel12,FCollisionShape::MakeCapsule(Radius, UncrouchedHalfHeight),QueryParams);
+	
+	if(!_StandUpCheck)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Standing up!"));
 		_IsSliding = false;
-		_canSlide = false;
+		GetWorld()->GetTimerManager().ClearTimer(FSlideTimerHandle);
+		UnCrouch();
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Collision Detected!"));
+		_IsSliding = false;
+		GetWorld()->GetTimerManager().ClearTimer(FSlideTimerHandle);
 	}
 }
 
@@ -559,13 +598,16 @@ void AHunter_Base::OnHunterCollisionEndOverlap(UPrimitiveComponent* OverlappedCo
 	{
 		_canVault = false;
 		_OverlappedVault = nullptr;
+		GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
 		_CurrentVault = 0.0f;
 		_IsSliding = false;
 	}
 	else if (_OverlappedClimb)
 	{
 		_OverlappedClimb = nullptr;
+		GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
 		_CurrentClimb = 0.0f;
+		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Block);
 		_IsClimbing = false;
 	}
 }

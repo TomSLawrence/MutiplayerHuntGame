@@ -7,6 +7,7 @@
 #include "TheClimb.generated.h"
 
 class UBoxComponent;
+class UArrowComponent;
 
 UCLASS()
 class ASYMMETRICALHUNTGAME_API ATheClimb : public AActor
@@ -17,6 +18,8 @@ public:
 	// Sets default values for this actor's properties
 	ATheClimb();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UArrowComponent> _PlayerDestination;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

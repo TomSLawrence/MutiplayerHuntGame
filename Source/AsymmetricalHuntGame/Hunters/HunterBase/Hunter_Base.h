@@ -86,6 +86,10 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_Slide();
 
+	//Standing Up
+	UFUNCTION()
+	virtual void CharacterStand();
+
 	//Player Components
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> _CharacterMesh;
