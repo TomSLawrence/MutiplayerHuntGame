@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "Survivor_Base.generated.h"
 
+//Forward Declarations
 class ATheClimb;
 class ATheVault;
 class ATheBeacon;
@@ -110,8 +111,9 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_StopRepairingBeaconAction();
 
-
 	//Movement Mechanics
+
+	//Vaulting
 	UFUNCTION(Server, Reliable)
 	virtual void S_Vault();
 	UFUNCTION(NetMulticast, Reliable)
@@ -121,6 +123,7 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_UpdateVault();
 
+	//Climbing
 	UFUNCTION(Server, Reliable)
 	virtual void S_Climb();
 	UFUNCTION(NetMulticast, Reliable)
@@ -130,14 +133,17 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_UpdateClimb();
 
+	//Sliding
 	UFUNCTION(Server, Reliable)
 	virtual void S_Slide();
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_Slide();
+
+	//Standing Up
 	UFUNCTION(Server, Reliable)
-	virtual void S_UpdateSlide();
+	virtual void S_CharacterStand();
 	UFUNCTION(NetMulticast, Reliable)
-	virtual void Multi_UpdateSlide();
+	virtual void Multi_CharacterStand();
 
 
 	//Collisions
@@ -155,16 +161,17 @@ public:
 	virtual void OnSurvivorCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	
+	//Public Player Components
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCapsuleComponent> _Collision;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCapsuleComponent> _SurvivorActionCollision;
-
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	bool isDowned;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCharacterMovementComponent> _CharacterMovement;
+
+	//Public Variables
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	bool isDowned;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	bool _isHoldingFuse;
 
@@ -183,9 +190,11 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> _EyeMesh2;
 
+	//Item Pickup location
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UArrowComponent> _PickupLocation;
-	
+
+	//Player Camera
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> _Camera;
 
@@ -199,18 +208,23 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool _IsSprinting;
 
+	//Health Variables
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	int _SurvivorHealth;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int _SurvivorMaxHealth;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	float _HealTime;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	bool canHeal;
 
+	//Repairing Variables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ATheBeacon> _OverlappedBeacon;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool _CanRepair;
 
+	//Vaulting Variables
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _canVault;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -219,14 +233,16 @@ protected:
 	float _CurrentVault;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	float _MaxVault;
-	
+
+	//Vaulting Locations
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	FVector _VaultStartLocation;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	FVector _VaultLocation;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	FVector TargetVaultLocation;
-	
+
+	//Climbing Variables
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _IsClimbing;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
@@ -235,7 +251,8 @@ protected:
 	float _MaxClimb;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _TraceDistance;
-	
+
+	//Climbing Locations
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	FVector _ClimbStartLocation;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
@@ -243,6 +260,7 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	FVector TargetClimbLocation;
 
+	//Sliding Variables
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _canSlide;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -251,22 +269,19 @@ protected:
 	float _CurrentSlide;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _MaxSlide;
-	
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	FVector _SlideStartLocation;
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	FVector _SlideEndLocation;
-	
+
+	//Player Timers
 	UPROPERTY()
 	FTimerHandle FTimerHandle;
 
+	//Climbing Collision Checks
 	FCollisionQueryParams _CollisionParams;
-	
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	bool canHeal;
+
+	//Is Holding a Survivor
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
 	bool _isHoldingSurvivor;
 
+	//Actors that collide with the Player
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ASurvivor_Base> _OverlappedSurvivor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -275,10 +290,6 @@ protected:
 	TObjectPtr<ATheVault> _OverlappedVault;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ATheClimb> _OverlappedClimb;
-
-	//Player Velocity
-	UPROPERTY()
-	FVector _PlayerVelocity;
 
 public:
 

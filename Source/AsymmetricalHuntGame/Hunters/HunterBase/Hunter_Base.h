@@ -7,6 +7,7 @@
 #include "AsymmetricalHuntGame/Controller/Interfaces/IAInterface.h"
 #include "Hunter_Base.generated.h"
 
+//Forward Declarations
 class ASurvivor_Base;
 class AProjectile_Base;
 class ATheVault;
@@ -25,7 +26,8 @@ class ASYMMETRICALHUNTGAME_API AHunter_Base : public ACharacter, public IIAInter
 public:
 	// Sets default values for this character's properties
 	AHunter_Base();
-	
+
+	//Basic Character Functions
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IACharacterMove(FVector _InputAxis);
 	UFUNCTION(NetMulticast, Reliable)
@@ -55,11 +57,11 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void IAInteract_Implementation(const FInputActionInstance& Instance) override;
 
+	//Attack Functions
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_HunterLunge();
 	UFUNCTION()
 	virtual void Multi_UpdateHunterLunge();
-
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multi_MissedLunge();
 	UFUNCTION(NetMulticast, Reliable)
@@ -104,19 +106,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UArrowComponent> _MeleeLocation;
 
+	//Interaction Collision (Different from player collider)
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCapsuleComponent> _HunterActionCollision;
 
+	//Ignored Actors for Attacks
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<AActor*> _IgnoredActors;
-	
-	//Public variables
 
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//Hunter Actions Collider
 	UFUNCTION()
 	virtual void OnHunterActionCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -124,6 +127,7 @@ protected:
 	virtual void OnHunterActionCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	//General Hunter Collision
 	UFUNCTION()
 	virtual void OnHunterCollisionOverlap(  UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -131,7 +135,7 @@ protected:
 	virtual void OnHunterCollisionEndOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	//Movement Variables
+	//Player Speed Variables
 	UPROPERTY(EditAnywhere)
 	float _CarryingSpeed;
 	UPROPERTY(EditAnywhere)
@@ -143,11 +147,13 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float _BlockSpeed;
 
+	//Sprinting Variables
 	UPROPERTY(EditAnywhere)
 	bool _IsSprinting;
 	UPROPERTY(EditAnywhere)
 	bool _CanSprint;
-	
+
+	//Attacking Variables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _LungePower;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -167,6 +173,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _CooldownSpeed;
 
+	//Vaulting Variables
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _canVault;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -175,14 +182,16 @@ protected:
 	float _CurrentVault;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _MaxVault;
-	
+
+	//Vaulting Location Variables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector _VaultStartLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector _VaultLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector TargetVaultLocation;
-	
+
+	//Climbing Variables
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _IsClimbing;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -195,6 +204,7 @@ protected:
 	float _TraceDistance;
 	
 
+	//Climbing Location Variables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector _ClimbStartLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -202,6 +212,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector TargetClimbLocation;
 
+	//Sliding Variables
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	bool _canSlide;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -211,35 +222,40 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float _MaxSlide;
 
-	UPROPERTY()
+	//Timer Handles
+	UPROPERTY() 
 	FTimerHandle FActionTimerHandle;
 	UPROPERTY()
+	FTimerHandle FAttackHandle;
+	UPROPERTY()
 	FTimerHandle FSlideTimerHandle;
-	
+
+	//Player Climbing Collision Check
 	FCollisionQueryParams _CollisionParams;
-	
+
+	//Weapon Locations - *Not Implemented yet*
 	UPROPERTY()
 	FVector _RaisedWeaponLocation;
 	UPROPERTY()
 	FVector _LoweredWeaponLocation;
 
+	//Lunge Start Location
 	UPROPERTY()
 	FVector _StartLocation;
-	UPROPERTY()
-	int _FiringDistance;
 
+	//Item Pickup attach location
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UArrowComponent> _PickupLocation;
 
+	//Actors that collide with the Hunter
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ASurvivor_Base> _OverlappedSurvivor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ATheVault> _OverlappedVault;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ATheClimb> _OverlappedClimb;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool _SurvivorInteract;
+
+	//Holding Survivor Check
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool _isHoldingSurvivor;
 

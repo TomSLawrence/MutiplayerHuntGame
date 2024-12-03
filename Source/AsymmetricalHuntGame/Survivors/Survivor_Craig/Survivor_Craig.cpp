@@ -93,6 +93,47 @@ void ASurvivor_Craig::Multi_UpdateVault()
 	Super::Multi_UpdateVault();
 }
 
+void ASurvivor_Craig::S_Climb()
+{
+	Super::S_Climb();
+}
+
+void ASurvivor_Craig::Multi_Climb()
+{
+	Super::Multi_Climb();
+}
+
+void ASurvivor_Craig::S_UpdateClimb()
+{
+	Super::S_UpdateClimb();
+}
+
+void ASurvivor_Craig::Multi_UpdateClimb()
+{
+	Super::Multi_UpdateClimb();
+}
+
+void ASurvivor_Craig::S_Slide()
+{
+	Super::S_Slide();
+}
+
+void ASurvivor_Craig::Multi_Slide()
+{
+	Super::Multi_Slide();
+}
+
+void ASurvivor_Craig::S_CharacterStand()
+{
+	Super::S_CharacterStand();
+}
+
+void ASurvivor_Craig::Multi_CharacterStand()
+{
+	Super::Multi_CharacterStand();
+}
+
+
 //Server functions
 void ASurvivor_Craig::S_BaseSurvivorDamage()
 {

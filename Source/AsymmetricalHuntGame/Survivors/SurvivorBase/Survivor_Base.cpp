@@ -24,7 +24,6 @@ ASurvivor_Base::ASurvivor_Base()
 	_SurvivorActionCollision->SetCapsuleRadius(120.0f);
 	
 	_CharacterMovement = GetCharacterMovement();
-	_PlayerVelocity = _CharacterMovement->GetLastUpdateVelocity();
 
 	_Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	_Mesh->SetupAttachment(_Collision);
@@ -113,8 +112,6 @@ void ASurvivor_Base::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ASurvivor_Base, TargetClimbLocation);
 
 	DOREPLIFETIME(ASurvivor_Base, _CurrentSlide);
-	DOREPLIFETIME(ASurvivor_Base, _SlideStartLocation);
-	DOREPLIFETIME(ASurvivor_Base, _SlideEndLocation);
 	
 }
 
@@ -208,11 +205,13 @@ void ASurvivor_Base::IASprint_Implementation_Implementation(const FInputActionIn
 {
 	if(!isDowned && !_isHoldingSurvivor)
 	{
-		if(!_IsSprinting)
+		if(!_IsSliding)
 		{
-			_IsSprinting = true;
-			_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
+			UnCrouch();
 		}
+		_IsSprinting = true;
+		_CharacterMovement->MaxWalkSpeed = _SprintSpeed;
+		_CharacterMovement->MaxWalkSpeedCrouched = _SprintSpeed;
 	}
 }
 
@@ -222,6 +221,7 @@ void ASurvivor_Base::IAStopSprinting_Implementation_Implementation(const FInputA
 	{
 		_IsSprinting = false;
 		_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
+		_CharacterMovement->MaxWalkSpeedCrouched = _CrouchSpeed;
 	}
 }
 
@@ -237,9 +237,13 @@ void ASurvivor_Base::IACrouch_Implementation_Implementation(const FInputActionIn
 			_IsSliding = true;
 			_CurrentSlide = 0.0f;
 			
-			_Collision->SetCapsuleHalfHeight(40.0f);
 			
-			S_Slide();
+			if(_canSlide)
+			{
+				_canSlide = false;
+				Crouch();
+				GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_Slide, 0.02, true);
+			}
 		}
 		else if(!_IsSprinting)
 		{
@@ -252,10 +256,7 @@ void ASurvivor_Base::IAStand_Implementation_Implementation(const FInputActionIns
 {
 	if(!isDowned && !_isHoldingSurvivor)
 	{
-		_Collision->SetCapsuleHalfHeight(100.0f);
-		UnCrouch();
-		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
-		_IsSliding = false;
+		S_CharacterStand();
 		_canSlide = true;
 	}
 }
@@ -357,12 +358,15 @@ void ASurvivor_Base::Multi_Vault_Implementation()
 {
 	if(!_IsVaulting && _OverlappedVault)
 	{
-		_IsSliding = false;
-		_IsClimbing = false;
-		_IsVaulting = true;
-		_canVault = false;
-		
-		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateVault, 0.02, true);
+		if(_OverlappedVault)
+		{
+			_IsSliding = false;
+			_IsClimbing = false;
+			_IsVaulting = true;
+			_canVault = false;
+			
+			GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateVault, 0.02, true);
+		}
 	}
 }
 
@@ -373,16 +377,19 @@ void ASurvivor_Base::S_UpdateVault_Implementation()
 
 void ASurvivor_Base::Multi_UpdateVault_Implementation()
 {
-	_CurrentVault += (0.05f/_MaxVault);
-
-	FVector NewLocation = FMath::Lerp(_VaultStartLocation, TargetVaultLocation, _CurrentVault);
-	SetActorLocation(NewLocation);
-
-	if(_CurrentVault >= _MaxVault)
+	if(_OverlappedVault)
 	{
-		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
-		_IsVaulting = false;
-		_canVault = true;
+		_CurrentVault += (0.05f/_MaxVault);
+
+		FVector NewLocation = FMath::Lerp(_VaultStartLocation, TargetVaultLocation, _CurrentVault);
+		SetActorLocation(NewLocation);
+
+		if(_CurrentVault >= _MaxVault)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+			_IsVaulting = false;
+			_canVault = true;
+		}
 	}
 }
 
@@ -399,14 +406,15 @@ void ASurvivor_Base::Multi_Climb_Implementation()
 {
 	if(!_IsClimbing && _OverlappedClimb)
 	{
-		_IsSliding = false;
-		_IsVaulting = false;
-		_IsClimbing = true;
-		
-		_CurrentClimb = 0.0f;
+		if(_OverlappedClimb)
+		{
+			_IsSliding = false;
+			_IsVaulting = false;
+			_IsClimbing = true;
 
-		_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Ignore);
-		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateClimb, 0.02, true);
+			_Collision->SetCollisionResponseToChannel(ECC_GameTraceChannel10, ECR_Ignore);
+			GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateClimb, 0.02, true);
+		}
 	}
 }
 
@@ -422,10 +430,9 @@ void ASurvivor_Base::Multi_UpdateClimb_Implementation()
 		_CurrentClimb += (0.05f/_MaxClimb);
 
 		FVector NewLocation = FMath::Lerp(_ClimbStartLocation, FVector(GetActorLocation().X, GetActorLocation().Y,
-			(_OverlappedClimb->GetActorLocation().Z * 2) + 50.0f), _CurrentClimb);
+			(_OverlappedClimb->_PlayerDestination->GetComponentLocation().Z)), _CurrentClimb);
 		
 		SetActorLocation(NewLocation);
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
 		
 		if(_CurrentClimb >= _MaxClimb)
 		{
@@ -447,27 +454,50 @@ void ASurvivor_Base::S_Slide_Implementation()
 
 void ASurvivor_Base::Multi_Slide_Implementation()
 {
-	if(_IsSliding && _canSlide)
+	if(_IsSliding)
 	{
-		GetWorld()->GetTimerManager().SetTimer(FTimerHandle, this, &ASurvivor_Base::S_UpdateSlide, 0.02, true);
+		_CurrentSlide += (0.05f / _MaxSlide);
 	}
-}
-
-void ASurvivor_Base::S_UpdateSlide_Implementation()
-{
-	Multi_UpdateSlide();
-}
-
-void ASurvivor_Base::Multi_UpdateSlide_Implementation()
-{
-	_CurrentSlide += (0.05f / _MaxSlide);
 
 	if(_CurrentSlide >= _MaxSlide)
 	{
-		_Collision->SetCapsuleHalfHeight(100.0f);
-		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+		S_CharacterStand();
+	}
+}
+
+void ASurvivor_Base::S_CharacterStand_Implementation()
+{
+	Multi_CharacterStand();
+}
+
+void ASurvivor_Base::Multi_CharacterStand_Implementation()
+{
+	float CurrentHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+	float UncrouchedHalfHeight = 100.0f;
+	float Radius = GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+
+	FVector CapsuleTopOffset = FVector(0, 0, (UncrouchedHalfHeight - CurrentHalfHeight));
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	FHitResult HitResult;
+	FVector Start = GetActorLocation();
+	FVector End = Start + CapsuleTopOffset;
+
+	bool _StandUpCheck = GetWorld()->SweepSingleByChannel(HitResult,Start,End,FQuat::Identity,
+		ECC_GameTraceChannel12,FCollisionShape::MakeCapsule(Radius, UncrouchedHalfHeight),QueryParams);
+	
+	if(!_StandUpCheck)
+	{
 		_IsSliding = false;
-		_canSlide = false;
+		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
+		UnCrouch();
+	}
+	else
+	{
+		_IsSliding = false;
+		GetWorld()->GetTimerManager().ClearTimer(FTimerHandle);
 	}
 }
 

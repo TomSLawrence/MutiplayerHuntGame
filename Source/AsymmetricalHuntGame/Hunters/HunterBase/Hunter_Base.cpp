@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/ArrowComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
@@ -67,7 +68,6 @@ AHunter_Base::AHunter_Base()
 	_MaxSlide = 2.0f;
 	_CurrentSlide = 0.0f;
 	
-	_SurvivorInteract = false;
 	_isHoldingSurvivor = false;
 
 	_RaisedWeaponLocation = FVector(110.0f, 0.0f, -40.0f);
@@ -256,7 +256,6 @@ void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstan
 		
 		if(_canVault && !_IsVaulting)
 		{
-					
 			_CurrentVault = 0.0f;
 			_VaultStartLocation = GetActorLocation();
 			_VaultLocation = _OverlappedVault->GetActorLocation();
@@ -269,7 +268,6 @@ void AHunter_Base::IAJump_Implementation_Implementation(const FInputActionInstan
 		}
 		else if(HitResult.bBlockingHit && !_IsClimbing && _CanClimb)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Jumping!"));
 			_CurrentClimb = 0.0f;
 			_ClimbStartLocation = GetActorLocation();
 			Multi_Climb();
@@ -289,7 +287,6 @@ void AHunter_Base::IAInteract_Implementation_Implementation(const FInputActionIn
 		{
 			if(_OverlappedSurvivor->isDowned)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Pickup Survivor!"));
 				_OverlappedSurvivor->_CharacterMovement->SetMovementMode(MOVE_None);
 				_OverlappedSurvivor->AttachToComponent(_PickupLocation, FAttachmentTransformRules::SnapToTargetIncludingScale);
 				_isHoldingSurvivor = true;
@@ -318,7 +315,7 @@ void AHunter_Base::Multi_HunterLunge_Implementation()
 		_IsVaulting = false;
 		_IsSwinging = true;
 
-		GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_UpdateHunterLunge, 0.02, true);
+		GetWorld()->GetTimerManager().SetTimer(FAttackHandle, this, &AHunter_Base::Multi_UpdateHunterLunge, 0.1f, true);
 		
 	}
 }
@@ -335,28 +332,30 @@ void AHunter_Base::Multi_UpdateHunterLunge()
 		FHitResult HitResult;
 
 		bool bHit = UKismetSystemLibrary::SphereTraceSingle(GetWorld(), _StartLocation, _StartLocation, 30.0f, 
-			TraceTypeQuery3, false, _IgnoredActors, EDrawDebugTrace::ForDuration, HitResult, true,
-			FLinearColor::Red, FLinearColor::Green, 1.0f);
-		
+				TraceTypeQuery3, false, _IgnoredActors, EDrawDebugTrace::ForDuration, HitResult, true,
+				FLinearColor::Red, FLinearColor::Green, 1.0f);
+			
 		if(bHit)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit Survivor!"));
 			if(ASurvivor_Base* HitSurvivor = Cast<ASurvivor_Base>(HitResult.GetActor()))
 			{
-				GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+				_IgnoredActors.Add(HitSurvivor);
+				GetWorld()->GetTimerManager().ClearTimer(FAttackHandle);
 				Multi_HitLunge();
 				HitSurvivor->S_BaseSurvivorDamage();
 			}
 			else
 			{
-				GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+				GetWorld()->GetTimerManager().ClearTimer(FAttackHandle);
 				Multi_HitLunge();
 			}
 		}
+		
 	}
 	else
 	{
-		GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(FAttackHandle);
 		Multi_MissedLunge();
 	}
 }
@@ -366,8 +365,8 @@ void AHunter_Base::Multi_MissedLunge_Implementation()
 {
 	_IsSwinging = false;
 	_CanSwing = true;
-
-	GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_LungeCooldown, 0.02, true);
+	_HitPlayer = false;
+	GetWorld()->GetTimerManager().SetTimer(FAttackHandle, this, &AHunter_Base::Multi_LungeCooldown, 0.02, true);
 }
 
 void AHunter_Base::Multi_HitLunge_Implementation()
@@ -375,8 +374,7 @@ void AHunter_Base::Multi_HitLunge_Implementation()
 	_IsSwinging = false;
 	_CanSwing = true;
 	_HitPlayer = true;
-
-	GetWorld()->GetTimerManager().SetTimer(FActionTimerHandle, this, &AHunter_Base::Multi_LungeCooldown, 0.02, true);
+	GetWorld()->GetTimerManager().SetTimer(FAttackHandle, this, &AHunter_Base::Multi_LungeCooldown, 0.02, true);
 }
 
 void AHunter_Base::Multi_LungeCooldown()
@@ -398,7 +396,7 @@ void AHunter_Base::Multi_LungeCooldown()
 			}
 			else if(_CurrentCooldown >= _MaxCooldown)
 			{
-				GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+				GetWorld()->GetTimerManager().ClearTimer(FAttackHandle);
 				_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 				_CanSwing = true;
 				_canSlide = true;
@@ -421,7 +419,7 @@ void AHunter_Base::Multi_LungeCooldown()
 			}
 			else if(_CurrentCooldown >= _MaxCooldown)
 			{
-				GetWorld()->GetTimerManager().ClearTimer(FActionTimerHandle);
+				GetWorld()->GetTimerManager().ClearTimer(FAttackHandle);
 				_CharacterMovement->MaxWalkSpeed = _WalkSpeed;
 				_CanSwing = true;
 				_canSlide = true;
@@ -498,7 +496,6 @@ void AHunter_Base::Multi_UpdateClimb()
 			(_OverlappedClimb->_PlayerDestination->GetComponentLocation().Z)), _CurrentClimb);
 		
 		SetActorLocation(NewLocation);
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Climbing!"));
 		
 		if(_CurrentClimb >= _MaxClimb)
 		{
@@ -514,7 +511,6 @@ void AHunter_Base::Multi_Slide_Implementation()
 	if(_IsSliding)
 	{
 		_CurrentSlide += (0.05f / _MaxSlide);
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Sliding!"));
 	}
 
 	if(_CurrentSlide >= _MaxSlide)
@@ -543,14 +539,12 @@ void AHunter_Base::CharacterStand()
 	
 	if(!_StandUpCheck)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Standing up!"));
 		_IsSliding = false;
 		GetWorld()->GetTimerManager().ClearTimer(FSlideTimerHandle);
 		UnCrouch();
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Collision Detected!"));
 		_IsSliding = false;
 		GetWorld()->GetTimerManager().ClearTimer(FSlideTimerHandle);
 	}
@@ -561,7 +555,6 @@ void AHunter_Base::OnHunterActionCollisionOverlap(UPrimitiveComponent* Overlappe
 {
 	ASurvivor_Base* _HitSurvivor = Cast<ASurvivor_Base>(OtherActor);
 	_OverlappedSurvivor = _HitSurvivor;
-	_SurvivorInteract = true;
 }
 
 void AHunter_Base::OnHunterActionCollisionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -569,7 +562,6 @@ void AHunter_Base::OnHunterActionCollisionEndOverlap(UPrimitiveComponent* Overla
 {
 	if(_OverlappedSurvivor)
 	{
-		_SurvivorInteract = false;
 		_OverlappedSurvivor = nullptr;
 	}
 }
