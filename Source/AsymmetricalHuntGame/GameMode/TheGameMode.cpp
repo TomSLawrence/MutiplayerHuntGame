@@ -54,7 +54,7 @@ void ATheGameMode::GM_SpawnCharacters_Implementation(AThePlayerController* _Play
 	SpawnParams.Owner = GetOwner();
 	SpawnParams.Instigator = GetInstigator();
 
-	FVector CharacterSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-2000,2000),UKismetMathLibrary::RandomIntegerInRange(-5000, 5000),5);
+	FVector CharacterSpawnLocation(UKismetMathLibrary::RandomIntegerInRange(-1000,1000),UKismetMathLibrary::RandomIntegerInRange(-1000, 1000),5);
 	FRotator CharacterSpawnRotation(0.0f, 0.0f, 0.0f); 
 
 	if(IsValid(_TheHunterCharacter) && IsValid(_TheSurvivorCharacter))

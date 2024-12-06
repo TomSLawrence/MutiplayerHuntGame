@@ -1,5 +1,6 @@
 ﻿#include "Survivor_Base.h"
 
+#include "BlueprintEditor.h"
 #include "AsymmetricalHuntGame/Hunters/HunterBase/Hunter_Base.h"
 #include "AsymmetricalHuntGame/Interactables/TheBeacon.h"
 #include "AsymmetricalHuntGame/Interactables/TheClimb.h"
@@ -715,7 +716,6 @@ void ASurvivor_Base::Multi_RepairingBeaconAction_Implementation()
 				_OverlappedBeacon->_HasFuse = true;
 				_isHoldingFuse = false;
 				_OverlappedBeacon->_LightMesh->SetVisibility(true);
-				_OverlappedFuse->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 				_OverlappedFuse->Destroy();
 			}
 			else if(_OverlappedBeacon->_RepairTime < _OverlappedBeacon->_MaxRepairTime)

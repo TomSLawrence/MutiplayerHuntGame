@@ -340,7 +340,6 @@ void AHunter_Base::Multi_UpdateHunterLunge()
 			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, TEXT("Hit Survivor!"));
 			if(ASurvivor_Base* HitSurvivor = Cast<ASurvivor_Base>(HitResult.GetActor()))
 			{
-				_IgnoredActors.Add(HitSurvivor);
 				GetWorld()->GetTimerManager().ClearTimer(FAttackHandle);
 				Multi_HitLunge();
 				HitSurvivor->S_BaseSurvivorDamage();
